@@ -2,11 +2,12 @@
 npm-debug.log
 
 # Folders to ignore
-test/src
-test/.jasmine
+dist
+dev
 test/coverage
 docs/_build/
 node_modules
+.build
 
-# compiled testing files
-test/chrome.sockets.tcp.xhr.*
+# temporary files
+*~

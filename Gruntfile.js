@@ -22,8 +22,9 @@ module.exports = function (grunt) {
               ' */\n\n',
 
         clean: {
+            dev: ['dev'],
             dist: ['dist'],
-            test: ['test/coverage', 'test/src', 'test/.jasmine'],
+            test: ['test/coverage'],
         },
 
         uglify: {
@@ -34,7 +35,7 @@ module.exports = function (grunt) {
                 },
 
                 files: {
-                    'test/src/chrome.sockets.tcp.xhr.js': ['src/chrome.sockets.tcp.xhr.js'],
+                    'dev/chrome.sockets.tcp.xhr.js': ['src/chrome.sockets.tcp.xhr.js'],
                 }
             },
 
@@ -55,23 +56,15 @@ module.exports = function (grunt) {
             },
 
             dist: ['src/*.js'],
-            test: ['test/main.js', 'test/vendor/chrome.polyfill.js', 'test/specs/*.js'],
+            test: ['test/*.js', 'test/vendor/chrome.polyfill.js'],
             gruntfile: ['Gruntfile.js'],
-        },
-
-        copy: {
-            jasmine: {
-                files: [
-                    {expand: true, flatten: true, filter: 'isFile', src: ['node_modules/grunt-contrib-jasmine/vendor/jasmine-*/**'], dest: 'test/.jasmine/'},
-                ]
-            }
         },
 
         jasmine: {
             dist: {
                 src: 'src/*.js',
                 options: {
-                    specs: 'test/specs/*.js',
+                    specs: 'test/unit.js',
                     vendor: 'test/vendor/*.js',
                     template: require('grunt-template-jasmine-istanbul'),
                     templateOptions: {
@@ -90,11 +83,18 @@ module.exports = function (grunt) {
             }
         },
 
-        connect: {
-            server: {
+        jasmine_chromeapp: {
+            providers: {
+                files: [
+                    {src: 'dev/chrome.sockets.tcp.xhr.js', dest: '/'},
+                    {src: 'test/integration.js', dest: '/', expand: true},
+                ],
                 options: {
-                    port: 8000,
-                    base: 'test'
+                    paths: [
+                        'dev/chrome.sockets.tcp.xhr.js',
+                        'test/integration.js'
+                    ],
+                    keepRunner: false
                 }
             }
         },
@@ -112,7 +112,7 @@ module.exports = function (grunt) {
             },
 
             test: {
-                files: ['test/main.js', 'test/vendor/chrome.polyfill.js', 'test/specs/*.js'],
+                files: ['test/unit.js', 'test/vendor/*.js'],
                 tasks: ['jshint:test', 'jasmine']
             },
 
@@ -147,14 +147,12 @@ module.exports = function (grunt) {
         'jshint',
         'clean',
         'uglify',
-        'copy',
-        'jasmine'
+        'jasmine',
+        'jasmine_chromeapp'
     ]);
 
     grunt.registerTask('default', [
-        'test',
-        'connect',
-        'watch'
+        'test'
     ]);
 
     grunt.registerTask('release', [
