@@ -8,6 +8,12 @@
                     onCreate({socketId: 1});
                 },
 
+                setPaused: function (socketId, paused, cb) {
+                    if (cb) {
+                        cb();
+                    }
+                },
+
                 connect: function (socketId, host, port, onConnect) {
                     onConnect(1);
                 },

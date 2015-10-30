@@ -33,6 +33,13 @@
                 }
             },
 
+            tlsStarted: {
+                enumerable: false,
+                configurable: false,
+                writable: true,
+                value: false
+            },
+
             props: {
                 enumerable: false,
                 configurable: false,
@@ -506,11 +513,16 @@
             return;
         }
 
-        var port = this.options.uri[3] ? parseInt(this.options.uri[3], null) : 80;
+        var defaultPort = this.options.uri[1] === 'https' ? 443 : 80;
+        var port = this.options.uri[3] ? parseInt(this.options.uri[3], null) : defaultPort;
 
         this.options.createInfo = createInfo;
 
-        chrome.sockets.tcp.connect(createInfo.socketId, this.options.uri[2], port, this.onConnect.bind(this));
+        // Pause the socket before creating it, and then unpause after it's connected.
+        // This has no effect for plain HTTP, but it is the recommended flow for HTTPS.
+        chrome.sockets.tcp.setPaused(createInfo.socketId, true, function() {
+            chrome.sockets.tcp.connect(createInfo.socketId, this.options.uri[2], port, this.onConnect.bind(this));
+        }.bind(this));
     };
 
     ChromeSocketsXMLHttpRequest.prototype.onConnect = function (result) {
@@ -525,9 +537,20 @@
                 error: 'connect error',
                 resultCode: result
             });
+        } else if (this.options.uri[1] === 'https' && !this.tlsStarted) {
+            var options = {};
+            chrome.sockets.tcp.secure(this.options.createInfo.socketId, options, function(result) {
+                if (result >= 0) {
+                    this.tlsStarted = true;
+                }
+                this.onConnect(result);
+            }.bind(this));
         } else {
             // assign recieve listner
             chrome.sockets.tcp.onReceive.addListener(this.onReceive.bind(this));
+
+            // unpause
+            chrome.sockets.tcp.setPaused(this.options.createInfo.socketId, false);
 
             // send message as ArrayBuffer
             this.generateMessage().toArrayBuffer(function sendMessage (buffer) {

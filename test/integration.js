@@ -84,4 +84,16 @@ describe('Basic XMLHttpRequest integration tests', function() {
         xhr.open('GET', 'http://unicodesnowmanforyou.com/');
         xhr.send(null);
     });
+
+    it ('SSL support', function (done) {
+        xhr.addEventListener('readystatechange', function () {
+            if (this.readyState === this.DONE) {
+                expect(xhr.statusText).toBe('200 OK');
+                done();
+            }
+        });
+
+        xhr.open('GET', 'https://www.httpsnow.org/');
+        xhr.send(null);
+    });
 });
