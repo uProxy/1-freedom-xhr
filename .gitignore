@@ -2,8 +2,7 @@
 npm-debug.log
 
 # Folders to ignore
-dist
-dev
+build
 test/coverage
 docs/_build/
 node_modules

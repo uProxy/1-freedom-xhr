@@ -15,39 +15,9 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
-        banner: '/*!\n' +
-              ' * chrome.sockets.tcp.xhr v<%= pkg.version %> (<%= pkg.homepage %>)\n' +
-              ' * Copyright <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
-              ' * Licensed under <%= pkg.license %> License\n' +
-              ' */\n\n',
-
         clean: {
-            dev: ['dev'],
-            dist: ['dist'],
+            build: ['build'],
             test: ['test/coverage'],
-        },
-
-        uglify: {
-            dev: {
-                options: {
-                    sourceMap: true,
-                    sourceMapIncludeSources: true
-                },
-
-                files: {
-                    'dev/chrome.sockets.tcp.xhr.js': ['src/chrome.sockets.tcp.xhr.js'],
-                }
-            },
-
-            dist: {
-                options: {
-                    banner: '<%= banner %>',
-                },
-
-                files: {
-                    'dist/chrome.sockets.tcp.xhr.min.js': ['src/chrome.sockets.tcp.xhr.js']
-                }
-            }
         },
 
         jshint: {
@@ -55,13 +25,13 @@ module.exports = function (grunt) {
                 jshintrc: '.jshintrc'
             },
 
-            dist: ['src/*.js'],
+            src: ['src/*.js'],
             test: ['test/*.js', 'test/vendor/chrome.polyfill.js'],
             gruntfile: ['Gruntfile.js'],
         },
 
         jasmine: {
-            dist: {
+            unit: {
                 src: 'src/*.js',
                 options: {
                     specs: 'test/unit.js',
@@ -123,7 +93,7 @@ module.exports = function (grunt) {
 
             js: {
                 files: ['src/*.js'],
-                tasks: ['jshint:dist', 'uglify', 'jasmine']
+                tasks: ['jshint:src', 'jasmine']
             }
         },
 
@@ -145,8 +115,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test', [
         'jshint',
-        'clean',
-        'uglify',
         'jasmine',
         'jasmine_chromeapp'
     ]);
