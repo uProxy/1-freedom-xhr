@@ -1,29 +1,35 @@
 {
-  "version": "0.0.3",
-  "name": "chrome.sockets.tcp.xhr",
-  "description": "an XMLHttpRequest drop-in replacement using chrome.sockets.tcp for Chrome Apps",
-  "author": "Ahmad Nassri <ahmad@codeinchaos.com> (http://ahmadnassri.com)",
-  "homepage": "https://github.com/codeinchaos/chrome.sockets.tcp.xhr",
+  "version": "0.0.4",
+  "name": "freedom-xhr",
+  "description": "an XMLHttpRequest drop-in replacement using core.xhr or core.tcpsocket in freedom.js",
+  "contributors": [
+    "Ben Schwartz <ben@bemasc.net> (http://bemasc.net)",
+    "Raymond Cheng <me@raymondcheng.net> (http://raymondcheng.net)"
+  ],
+  "homepage": "https://github.com/uProxy/freedom-xhr",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeinchaos/chrome.sockets.tcp.xhr.git"
+    "url": "git@github.com:uProxy/freedom-xhr.git"
   },
   "bugs": {
-    "url": "https://github.com/codeinchaos/chrome.sockets.tcp.xhr/issues"
+    "url": "https://github.com/uProxy/uproxy/issues"
   },
-  "main": "dist/chrome.sockets.tcp.xhr.min.js",
+  "main": "index.js",
   "keywords": [
     "XHR",
     "XMLHttpRequest",
-    "Chrome",
+    "freedom",
     "Sockets"
   ],
   "files": [
+    "index.js",
     "dist",
     "LICENSE"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "parseuri": "0.0.4"
+  },
   "devDependencies": {
     "grunt": "^0.4.4",
     "grunt-contrib-uglify": "^0.4.0",
