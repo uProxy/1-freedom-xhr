@@ -12,6 +12,7 @@
   "bugs": {
     "url": "https://github.com/codeinchaos/chrome.sockets.tcp.xhr/issues"
   },
+  "main": "dist/chrome.sockets.tcp.xhr.min.js",
   "keywords": [
     "XHR",
     "XMLHttpRequest",

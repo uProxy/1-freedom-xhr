@@ -1,5 +1,5 @@
 describe('XMLHttpRequest Compatibility: event [load]', function() {
-    var xhr = new chrome.sockets.tcp.xhr();
+    var xhr = new require('chrome.sockets.tcp.xhr')();
 
     beforeEach(function(done) {
         xhr.addEventListener('load', function (e) {

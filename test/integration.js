@@ -2,7 +2,7 @@ describe('Basic XMLHttpRequest integration tests', function() {
     var xhr;
 
     beforeEach(function() {
-        xhr = new chrome.sockets.tcp.xhr();
+        xhr = new require('chrome.sockets.tcp.xhr')();
     });
 
     afterEach(function() {

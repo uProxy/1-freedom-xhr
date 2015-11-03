@@ -1,7 +1,4 @@
-(function () {
-    'use strict';
-
-    var ChromeSocketsXMLHttpRequest = chrome.sockets.tcp.xhr = function () {
+    var ChromeSocketsXMLHttpRequest = function () {
         Object.defineProperties(this, {
             options: {
                 enumerable: false,
@@ -166,6 +163,15 @@
                 enumerable: true,
                 writable: true,
                 value: null
+            },
+
+            /**
+             * http://www.w3.org/TR/XMLHttpRequest/#the-responseurl-attribute
+             */
+            responseURL: {
+                enumerable: true,
+                writable: true,
+                value: ''
             },
 
             /**
@@ -370,7 +376,7 @@
             var mimetype = null;
 
 
-            if (data instanceof ArrayBufferView) {
+            if (data instanceof Uint8Array) {
                 // Let the request entity body be the raw data represented by data.
             } else if (data instanceof Blob) {
                 // if the object's type attribute is not the empty string let mime type be its value.
@@ -417,7 +423,7 @@
         this.options.inprogress = true;
 
         // Fire a progress event named loadstart.
-        this.dispatchEvent('loadstart');
+        this.dispatchProgressEvent('loadstart');
 
         // continue with sockets setup
         var socketProperties = {
@@ -487,12 +493,18 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.dispatchEvent = function(name) {
-        var args = arguments;
+    ChromeSocketsXMLHttpRequest.prototype.dispatchProgressEvent = function(name) {
+        this.dispatchEvent(name, {
+            lengthComputable: false,
+            loaded: 0,
+            total: 0
+        });
+    };
 
+    ChromeSocketsXMLHttpRequest.prototype.dispatchEvent = function(name, e) {
         if (this.hasOwnProperty('on' + name)) {
             if (this['on' + name]) {
-                this['on' + name].apply(this, Array.prototype.slice.call(args, 1));
+                this['on' + name].call(this, e);
             }
         }
 
@@ -501,7 +513,7 @@
         }
 
         this.options.events[name].forEach(function (event) {
-            event.apply(this, Array.prototype.slice.call(args, 1));
+            event.call(this, e);
         }.bind(this));
     };
 
@@ -616,15 +628,17 @@
         // slice the body right after CRLFx2 and set the response object
         this.responseText = response.slice(responseMatch.index + 4);
 
+        this.responseURL = this.options.uri[0];
+
         // parse headers
         var headerLines = this.options.response.headersText.split('\r\n');
         var statusLine = headerLines.shift();
 
-        var statusLineMatch = statusLine.match(/(HTTP\/\d\.\d)\s+((\d+)\s+.*)/);
+        var statusLineMatch = statusLine.match(/(HTTP\/\d\.\d)\s+((\d+)\s+(.*))/);
 
         if (statusLineMatch) {
             this.status = parseInt(statusLineMatch[3], 0);
-            this.statusText = statusLineMatch[2];
+            this.statusText = statusLineMatch[4];
         }
 
         headerLines.forEach(function (headerLine) {
@@ -701,13 +715,13 @@
         this.readyState = this.DONE;
 
         // Fire a progress event named "progress".
-        this.dispatchEvent('progress');
+        this.dispatchProgressEvent('progress');
 
         // Fire a progress event named load.
-        this.dispatchEvent('load');
+        this.dispatchProgressEvent('load');
 
         // Fire a progress event named loadend
-        this.dispatchEvent('loadend');
+        this.dispatchProgressEvent('loadend');
     };
 
     ChromeSocketsXMLHttpRequest.prototype.generateMessage = function () {
@@ -937,4 +951,5 @@
 
         reader.readAsArrayBuffer(blob);
     };
-})();
+
+module.exports = ChromeSocketsXMLHttpRequest;
