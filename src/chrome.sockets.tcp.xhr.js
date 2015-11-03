@@ -8,7 +8,6 @@
                     data: null,
                     events: {},
                     method: null,
-                    createInfo: null,
                     inprogress: false,
                     redirects: {
                         max: 10,
@@ -21,7 +20,7 @@
                     },
                     headers: {
                         'Connection': 'close',
-                        'User-Agent': 'chrome.sockets.tcp.xhr'
+                        'User-Agent': 'core.tcpsocket.xhr'
                     },
                     response: {
                         headers: [],
@@ -43,6 +42,13 @@
                 value: {
                     readyState: 0,
                 }
+            },
+
+            socket: {
+                enumerable: false,
+                configurable: false,
+                writable: true,
+                value: null
             },
 
             /**
@@ -425,13 +431,8 @@
         // Fire a progress event named loadstart.
         this.dispatchProgressEvent('loadstart');
 
-        // continue with sockets setup
-        var socketProperties = {
-            persistent: false,
-            name: 'chrome.sockets.tcp.xhr'
-        };
-
-        chrome.sockets.tcp.create(socketProperties, this.onCreate.bind(this));
+        var socket = freedom['core.tcpsocket']();
+        this.onCreate(socket);  // TODO: No need for async-style callback
 
         if (this.timeout > 0) {
             this.options.timer.id = setTimeout(this.expireTimer.bind(this), this.timeout);
@@ -518,9 +519,9 @@
     };
 
     /**
-     * chrome.sockets.tcp events
+     * core.tcpsocket events
      */
-    ChromeSocketsXMLHttpRequest.prototype.onCreate = function (createInfo) {
+    ChromeSocketsXMLHttpRequest.prototype.onCreate = function (socket) {
         if (!this.options.inprogress) {
             return;
         }
@@ -528,12 +529,13 @@
         var defaultPort = this.options.uri[1] === 'https' ? 443 : 80;
         var port = this.options.uri[3] ? parseInt(this.options.uri[3], null) : defaultPort;
 
-        this.options.createInfo = createInfo;
+        this.socket = socket;
 
         // Pause the socket before creating it, and then unpause after it's connected.
         // This has no effect for plain HTTP, but it is the recommended flow for HTTPS.
-        chrome.sockets.tcp.setPaused(createInfo.socketId, true, function() {
-            chrome.sockets.tcp.connect(createInfo.socketId, this.options.uri[2], port, this.onConnect.bind(this));
+        this.socket.pause().then(function() {
+            // TODO: Split onConnect for failure
+            this.socket.connect(this.options.uri[2], port).then(this.onConnect.bind(this, 0), this.onConnect.bind(this, -1));
         }.bind(this));
     };
 
@@ -551,22 +553,21 @@
             });
         } else if (this.options.uri[1] === 'https' && !this.tlsStarted) {
             var options = {};
-            chrome.sockets.tcp.secure(this.options.createInfo.socketId, options, function(result) {
+            this.socket.secure.then(function() {
                 if (result >= 0) {
                     this.tlsStarted = true;
                 }
-                this.onConnect(result);
+                this.onConnect(0);  // TODO: Split onConnect for failure
             }.bind(this));
         } else {
             // assign recieve listner
-            chrome.sockets.tcp.onReceive.addListener(this.onReceive.bind(this));
+            this.socket.on('onData', this.onReceive.bind(this));
 
-            // unpause
-            chrome.sockets.tcp.setPaused(this.options.createInfo.socketId, false);
+            this.socket.resume();
 
             // send message as ArrayBuffer
             this.generateMessage().toArrayBuffer(function sendMessage (buffer) {
-                chrome.sockets.tcp.send(this.options.createInfo.socketId, buffer, this.onSend.bind(this));
+                this.socket.write(buffer).then(this.onSend.bind(this));
             }.bind(this));
         }
     };
@@ -590,7 +591,7 @@
     };
 
     ChromeSocketsXMLHttpRequest.prototype.onReceive = function (info) {
-        // chrome.sockets.tcp.onReceiveError.addListener(this.onReceiveError.bind(this));
+        // TODO: add an onDisconnect listener
 
         if (!this.options.inprogress) {
             return;
@@ -904,9 +905,9 @@
         this.options.inprogress = false;
 
         if (this.options.createInfo !== null) {
-            chrome.sockets.tcp.disconnect(this.options.createInfo.socketId);
-            chrome.sockets.tcp.close(this.options.createInfo.socketId);
-            this.options.createInfo = null;
+            this.socket.close();
+            freedom['core.tcpsocket'].close(this.socket);
+            this.socket = null;
         }
     };
 

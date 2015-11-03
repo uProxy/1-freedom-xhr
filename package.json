@@ -32,6 +32,7 @@
     "parseuri": "0.0.4"
   },
   "devDependencies": {
+    "freedom": "^0.6.0",
     "grunt": "^0.4.4",
     "grunt-browserify": "^4.0.1",
     "grunt-bump": "^0.0.13",
