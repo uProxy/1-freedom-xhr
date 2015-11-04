@@ -20,11 +20,12 @@ xhrdemo.prototype.testLoadEvent = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function (e) {
       // TODO: expect(e).not.toBeUndefined();
-      if (this.xhr.readyState === 4) {
-        resolve('Woo');
-      } else {
+      //
+      if (this.xhr.readyState !== 4) {
         reject('readyState is not 4: ' + this.xhr.readyState);
+        return;
       }
+      resolve('Woo');
     }.bind(this));
 
 //    this.xhr.open('GET', 'http://isup.me');
@@ -33,71 +34,97 @@ xhrdemo.prototype.testLoadEvent = function() {
   }.bind(this));
 };
 
+xhrdemo.prototype.testErrorEvent = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('error', function (e) {
+      // TODO: expect(e).not.toBeUndefined();
+      resolve('Woo');
+    }.bind(this));
+
+    this.xhr.open('GET', 'http://no.such.domain');
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testTimeoutEvent = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('timeout', function (e) {
+      // TODO: expect(e).not.toBeUndefined();
+      resolve('Woo');
+    }.bind(this));
+
+    this.xhr.timeout = 500;
+    this.xhr.open('GET', 'http://192.0.2.1');
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testBeforeRedirectEvent = function() {
+  return new Promise(function(resolve, reject) {
+    var redirector = 'http://httpredir.debian.org/debian/';
+    this.xhr.addEventListener('beforeredirect', function (redirectUrl, responseHeaders, statusText) {
+      if (redirectUrl.match(/^http.*\/debian\/$/) === null) {
+        reject('Invalid redirect');
+        return;
+      }
+      if (redirectUrl === redirector) {
+        reject('Invalid redirect');
+        return;
+      }
+      if (statusText.match(/^30/) === null) {
+        reject('Invalid redirect');
+        return;
+      }
+      resolve('Woo');
+    }.bind(this));
+
+    this.xhr.open('GET', redirector);
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testLoadGetResponse = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('load', function (e) {
+      // TODO: expect(e).not.toBeUndefined();
+      if (this.xhr.statusText !== '200 OK') {
+        reject('statusText not `200 OK`: ' + this.xhr.statusText);
+        return;
+      }
+      if (this.xhr.responseText.match(/&#9731;/) === null) {
+        reject('responseText doesnt fit expect');
+        return;
+      }
+      resolve('Woo');
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://api.github.com/');
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testDoneGetResponse = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== '200 OK') {
+          reject('statusText not `200 OK`: ' + this.xhr.statusText);
+          return;
+        }
+        if (this.xhr.responseText.match(/&#9731;/) === null) {
+          reject('responseText doesnt fit expect');
+          return;
+        }
+        resolve('Woo');
+      }
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://api.github.com/');
+    this.xhr.send(null);
+  }.bind(this));
+};
+
     /**
-    afterEach(function() {
-        xhr.abort();
-    });
-
-    it('error event', function(done) {
-        xhr.addEventListener('error', function (e) {
-            // TODO: expect(e).not.toBeUndefined();
-            done();
-        });
-
-        xhr.open('GET', 'http://no.such.domain');
-        xhr.send(null);
-    });
-
-    it('timeout event', function(done) {
-        xhr.addEventListener('timeout', function (e) {
-            // TODO: expect(e).not.toBeUndefined();
-            done();
-        });
-
-        xhr.timeout = 500;  // milliseconds
-        xhr.open('GET', 'http://192.0.2.1');  // Reserved IP address.
-        xhr.send(null);
-    });
-
-    it('beforeredirect event', function(done) {
-        var xhr = new chrome.sockets.tcp.xhr();
-
-        var redirector = 'http://httpredir.debian.org/debian/';
-        xhr.addEventListener('beforeredirect', function (redirectUrl, responseHeaders, statusText) {
-            expect(redirectUrl).toMatch(/^http.*\/debian\/$/);
-            expect(redirectUrl).not.toEqual(redirector);
-            expect(statusText).toMatch(/^30/);
-            done();
-        });
-
-        xhr.open('GET', redirector);
-        xhr.send(null);
-    });
-
-    it('load event should indicate a successful response', function (done) {
-        xhr.addEventListener('load', function (e) {
-            // TODO: expect(e).not.toBeUndefined();
-            expect(xhr.statusText).toBe('200 OK');
-            expect(xhr.responseText).toMatch(/&#9731;/);
-            done();
-        });
-
-        xhr.open('GET', 'http://unicodesnowmanforyou.com/');
-        xhr.send(null);
-    });
-
-    it ('done state should indicate a successful response', function (done) {
-        xhr.addEventListener('readystatechange', function () {
-            if (this.readyState === this.DONE) {
-                expect(xhr.statusText).toBe('200 OK');
-                expect(xhr.responseText).toMatch(/&#9731;/);
-                done();
-            }
-        });
-
-        xhr.open('GET', 'http://unicodesnowmanforyou.com/');
-        xhr.send(null);
-    });
 
     it ('SSL support', function (done) {
         xhr.addEventListener('readystatechange', function () {

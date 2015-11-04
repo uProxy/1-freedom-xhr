@@ -28,8 +28,24 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'corexhr', 'testLoadEvent');
   });
 
-  it('coretcpsocket: load event', function(done) {
-    runTest(done, 'coretcpsocket', 'testLoadEvent');
+  it('corexhr: error event', function(done) {
+    runTest(done, 'corexhr', 'testErrorEvent');
+  });
+
+  it('corexhr: timeout event', function(done) {
+    runTest(done, 'corexhr', 'testTimeoutEvent');
+  });
+
+  it('corexhr: beforeredirect event', function(done) {
+    runTest(done, 'corexhr', 'testBeforeRedirectEvent');
+  });
+
+  it('corexhr: gets response on load', function(done) {
+    runTest(done, 'corexhr', 'testLoadGetResponse');
+  });
+
+  it('corexhr: gets response on done', function(done) {
+    runTest(done, 'corexhr', 'testDoneGetResponse');
   });
 
 });
