@@ -59,30 +59,6 @@ xhrdemo.prototype.testTimeoutEvent = function() {
   }.bind(this));
 };
 
-xhrdemo.prototype.testBeforeRedirectEvent = function() {
-  return new Promise(function(resolve, reject) {
-    var redirector = 'http://httpredir.debian.org/debian/';
-    this.xhr.addEventListener('beforeredirect', function (redirectUrl, responseHeaders, statusText) {
-      if (redirectUrl.match(/^http.*\/debian\/$/) === null) {
-        reject('Invalid redirect');
-        return;
-      }
-      if (redirectUrl === redirector) {
-        reject('Invalid redirect');
-        return;
-      }
-      if (statusText.match(/^30/) === null) {
-        reject('Invalid redirect');
-        return;
-      }
-      resolve('Woo');
-    }.bind(this));
-
-    this.xhr.open('GET', redirector);
-    this.xhr.send(null);
-  }.bind(this));
-};
-
 xhrdemo.prototype.testLoadGetResponse = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function (e) {

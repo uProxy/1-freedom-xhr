@@ -36,10 +36,6 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'corexhr', 'testTimeoutEvent');
   });
 
-  it('corexhr: beforeredirect event', function(done) {
-    runTest(done, 'corexhr', 'testBeforeRedirectEvent');
-  });
-
   it('corexhr: gets response on load', function(done) {
     runTest(done, 'corexhr', 'testLoadGetResponse');
   });

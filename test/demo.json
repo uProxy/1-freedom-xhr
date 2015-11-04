@@ -13,7 +13,6 @@
       "testLoadEvent": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testErrorEvent": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testTimeoutEvent": { "type": "method", "value": [], "ret": "string", "err": "string" },
-      "testBeforeRedirectEvent": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testLoadGetResponse": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testDoneGetResponse": { "type": "method", "value": [], "ret": "string", "err": "string" }
     }
