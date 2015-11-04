@@ -596,10 +596,6 @@
             return;
         }
 
-        if (info.socketId !== this.options.createInfo.socketId) {
-            return;
-        }
-
         // immediately disconnect on first respond
         this.disconnect();
 
@@ -903,7 +899,7 @@
     ChromeSocketsXMLHttpRequest.prototype.disconnect = function () {
         this.options.inprogress = false;
 
-        if (this.options.createInfo !== null) {
+        if (this.socket) {
             this.socket.close();
             freedom['core.tcpsocket'].close(this.socket);
             this.socket = null;
