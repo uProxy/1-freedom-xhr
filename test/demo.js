@@ -18,8 +18,6 @@ xhrdemo.prototype.testHasXhr = function() {
 
 xhrdemo.prototype.testLoadEvent = function() {
   return new Promise(function(resolve, reject) {
-    console.log("testLoadEvent");
-    /**
     this.xhr.addEventListener('load', function (e) {
       // TODO: expect(e).not.toBeUndefined();
       if (this.xhr.readyState === 4) {
@@ -28,14 +26,10 @@ xhrdemo.prototype.testLoadEvent = function() {
         reject("readyState is not 4: " + this.xhr.readyState);
       }
     });
-    **/
 
-    console.log("1");
     this.xhr.open('GET', 'http://isup.me');
-    console.log("2");
     this.xhr.send(null);
-    console.log("!!!");
-  });
+  }.bind(this));
 };
 
     /**
