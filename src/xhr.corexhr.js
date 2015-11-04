@@ -147,7 +147,7 @@ XhrShim.prototype.refresh_ = function() {
     this.xhr_.getStatus().then(function(status) {
       this.status = status;
     }.bind(this)),
-    this.xhr_.getStatusText(function(statusText) {
+    this.xhr_.getStatusText().then(function(statusText) {
       this.statusText = statusText;
     }.bind(this))
   ];

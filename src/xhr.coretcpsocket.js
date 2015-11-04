@@ -531,12 +531,13 @@
 
         this.socket = socket;
 
-        // Pause the socket before creating it, and then unpause after it's connected.
-        // This has no effect for plain HTTP, but it is the recommended flow for HTTPS.
-        this.socket.pause().then(function() {
-            // TODO: Split onConnect for failure
-            this.socket.connect(this.options.uri[2], port).then(this.onConnect.bind(this, 0), this.onConnect.bind(this, -1));
-        }.bind(this));
+        // Pause the socket as soon as it's connected.
+        // This is needed for HTTPS.  The socket will be unpaused after calling .secure
+        // (if necessary).
+        this.socket.connect(this.options.uri[2], port).
+            then(this.socket.pause.bind(this.socket)).
+            then(this.onConnect.bind(this, 0)).
+            catch(this.onConnect.bind(this, -1));
     };
 
     ChromeSocketsXMLHttpRequest.prototype.onConnect = function (result) {

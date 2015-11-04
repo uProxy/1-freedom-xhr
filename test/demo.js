@@ -63,15 +63,17 @@ xhrdemo.prototype.testLoadGetResponse = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function (e) {
       // TODO: expect(e).not.toBeUndefined();
-      if (this.xhr.statusText !== '200 OK') {
-        reject('statusText not `200 OK`: ' + this.xhr.statusText);
+      if (this.xhr.statusText !== 'OK') {
+        reject('statusText not `OK`: ' + this.xhr.statusText);
         return;
       }
-      if (this.xhr.responseText.match(/&#9731;/) === null) {
-        reject('responseText doesnt fit expect');
-        return;
+      try {
+        // Check that the page is valid JSON
+        var parsed = JSON.parse(this.xhr.responseText);
+        resolve('Woo');
+      } catch (e) {
+        reject('responseText isn\'t valid JSON:' + e.message);
       }
-      resolve('Woo');
     }.bind(this));
 
     this.xhr.open('GET', 'https://api.github.com/');
@@ -83,15 +85,17 @@ xhrdemo.prototype.testDoneGetResponse = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== '200 OK') {
-          reject('statusText not `200 OK`: ' + this.xhr.statusText);
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
           return;
         }
-        if (this.xhr.responseText.match(/&#9731;/) === null) {
-          reject('responseText doesnt fit expect');
-          return;
+        try {
+          // Check that the page is valid JSON
+          var parsed = JSON.parse(this.xhr.responseText);
+          resolve('Woo');
+        } catch (e) {
+          reject('responseText isn\'t valid JSON:' + e.message);
         }
-        resolve('Woo');
       }
     }.bind(this));
 
@@ -105,7 +109,7 @@ xhrdemo.prototype.testDoneGetResponse = function() {
     it ('SSL support', function (done) {
         xhr.addEventListener('readystatechange', function () {
             if (this.readyState === this.DONE) {
-                expect(xhr.statusText).toBe('200 OK');
+                expect(xhr.statusText).toBe('OK');
                 done();
             }
         });
