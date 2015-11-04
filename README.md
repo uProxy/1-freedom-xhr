@@ -1,4 +1,4 @@
-# freeodm-xhr [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url]
+# freedom-xhr [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url]
 
 [![Build Status][travis-image]][travis-url]
 [![Code Climate][codeclimate-image]][codeclimate-url]

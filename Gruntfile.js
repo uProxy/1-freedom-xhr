@@ -66,15 +66,17 @@ module.exports = function (grunt) {
     jasmine_chromeapp: {
       providers: {
         files: [
-          {src: 'dev/chrome.sockets.tcp.xhr.js', dest: '/'},
-          {src: 'test/integration.js', dest: '/', expand: true},
+          {src: 'node_modules/freedom-for-chrome/freedom-for-chrome.js', dest: '/'},
+          {src: 'build/index.js', dest: '/'},
+          {src: 'test/integration.js', dest: '/'},
+          {src: 'test/demo.js*', dest: '/', expand: true},
         ],
         options: {
           paths: [
-            'dev/chrome.sockets.tcp.xhr.js',
+            'node_modules/freedom-for-chrome/freedom-for-chrome.js',
             'test/integration.js'
           ],
-          keepRunner: false
+          keepRunner: true 
         }
       }
     },
@@ -102,7 +104,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', [
     'jshint',
     'jasmine',
-    'jasmine_chromeapp'
+    'jasmine_chromeapp',
   ]);
 
   grunt.registerTask('default', [
