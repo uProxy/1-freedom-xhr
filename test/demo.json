@@ -8,7 +8,9 @@
   "default": "xhrdemo",
   "api": {
     "xhrdemo": {
-      "testHasXhr": { "type": "method", "value": [], "ret": [], "err": [] }
+      "constructor": { "value": [ "string" ] },
+      "testHasXhr": { "type": "method", "value": [], "ret": "string", "err": "string" },
+      "testLoadEvent": { "type": "method", "value": [], "ret": "string", "err": "string" }
     }
   },
   "permissions": [
