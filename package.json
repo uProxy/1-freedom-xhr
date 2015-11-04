@@ -1,10 +1,10 @@
 {
-  "version": "0.0.4",
+  "version": "0.0.5",
   "name": "freedom-xhr",
   "description": "an XMLHttpRequest drop-in replacement using core.xhr or core.tcpsocket in freedom.js",
   "contributors": [
     "Ben Schwartz <ben@bemasc.net> (http://bemasc.net)",
-    "Raymond Cheng <me@raymondcheng.net> (http://raymondcheng.net)"
+    "Raymond Cheng <me@raymondcheng.net> (https://raymondcheng.net)"
   ],
   "homepage": "https://github.com/uProxy/freedom-xhr",
   "license": "MIT",
@@ -23,8 +23,6 @@
     "Sockets"
   ],
   "files": [
-    "index.js",
-    "dist",
     "src",
     "LICENSE"
   ],
@@ -53,7 +51,7 @@
     "time-grunt": "^0.3.1"
   },
   "scripts": {
-    "ci": "grunt test && grunt coveralls",
+    "ci": "grunt test",
     "release": "grunt build --verbose"
   }
 }
