@@ -2,7 +2,7 @@
 npm-debug.log
 
 # Folders to ignore
-build
+build/
 test/coverage
 docs/_build/
 node_modules
