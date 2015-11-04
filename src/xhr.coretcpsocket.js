@@ -535,7 +535,6 @@
         // This is needed for HTTPS.  The socket will be unpaused after calling .secure
         // (if necessary).
         this.socket.connect(this.options.uri[2], port).
-            then(this.socket.pause.bind(this.socket)).
             then(this.onConnect.bind(this, 0)).
             catch(this.onConnect.bind(this, -1));
     };
@@ -554,17 +553,16 @@
             });
         } else if (this.options.uri[1] === 'https' && !this.tlsStarted) {
             var options = {};
-            this.socket.secure.then(function() {
-                if (result >= 0) {
-                    this.tlsStarted = true;
-                }
-                this.onConnect(0);  // TODO: Split onConnect for failure
+            this.socket.prepareSecure().
+                then(this.socket.secure.bind(this.socket)).then(function() {
+                this.tlsStarted = true;
+                this.onConnect(0);
+            }.bind(this)).catch(function() {
+                this.onConnect(-1);
             }.bind(this));
         } else {
             // assign recieve listner
             this.socket.on('onData', this.onReceive.bind(this));
-
-            this.socket.resume();
 
             // send message as ArrayBuffer
             this.generateMessage().toArrayBuffer(function sendMessage (buffer) {

@@ -28,6 +28,10 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'corexhr', 'testLoadEvent');
   });
 
+  it('coretcpsocket: load event', function(done) {
+    runTest(done, 'coretcpsocket', 'testLoadEvent');
+  });
+
   it('corexhr: error event', function(done) {
     runTest(done, 'corexhr', 'testErrorEvent');
   });
