@@ -66,10 +66,10 @@ module.exports = function (grunt) {
     jasmine_chromeapp: {
       providers: {
         files: [
-          {src: 'node_modules/freedom-for-chrome/freedom-for-chrome.js', dest: '/'},
-          {src: 'build/index.js', dest: '/'},
-          {src: 'test/integration.js', dest: '/'},
-          {src: 'test/demo.js*', dest: '/', expand: true},
+          { src: 'node_modules/freedom-for-chrome/freedom-for-chrome.js', dest: '/' },
+          { src: 'build/index.js', dest: '/' },
+          { src: 'test/integration.js', dest: '/' },
+          { src: 'test/demo.js*', dest: '/' },
         ],
         options: {
           paths: [

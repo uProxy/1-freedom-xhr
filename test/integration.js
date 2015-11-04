@@ -1,9 +1,21 @@
 describe('Basic XMLHttpRequest integration tests', function() {
-    var xhr;
+  var xhr;
 
-    it('succeeds', function() {
-      expect(true).toBe(true);
+  var errHandler = function(done, errMsg) {
+    expect(errMsg).toBeUndefined();
+    expect(true).toBe(false);
+    done();
+  };
+
+  it('succeeds', function(done) {
+    freedom('scripts/test/demo.json').then(function(Demo) {
+      var demo = new Demo();
+      demo.testHasXhr().then(function() {
+        expect(true).toBe(true);
+        done();
+      }).catch(errHandler.bind({}, done));
     });
+  });
     /**
     beforeEach(function() {
         xhr = new require('chrome.sockets.tcp.xhr')();

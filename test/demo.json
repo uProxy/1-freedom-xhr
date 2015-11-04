@@ -1,0 +1,18 @@
+{
+  "name": "xhr demo",
+  "description": "A demo to show xhr usage",
+  "app": {
+    "script": [ "../build/index.js", "demo.js" ]
+  },
+  "provides": [ "xhrdemo" ],
+  "default": "xhrdemo",
+  "api": {
+    "xhrdemo": {
+      "testHasXhr": { "type": "method", "value": [], "ret": [], "err": [] }
+    }
+  },
+  "permissions": [
+    "core.xhr",
+    "core.tcpsocket"
+  ]
+}
