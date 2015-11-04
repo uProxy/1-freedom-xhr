@@ -8,11 +8,11 @@ var xhrdemo = function(dispatchEvent, selector) {
 };
 
 xhrdemo.prototype.testHasXhr = function() {
-  if (typeof this.XhrClass !== "undefined" &&
-        typeof this.xhr !== "undefined") {
-    return Promise.resolve("Woo");
+  if (typeof this.XhrClass !== 'undefined' &&
+        typeof this.xhr !== 'undefined') {
+    return Promise.resolve('Woo');
   } else {
-    return Promise.reject("Missing XHR classes");
+    return Promise.reject('Missing XHR classes');
   }
 };
 
@@ -21,13 +21,14 @@ xhrdemo.prototype.testLoadEvent = function() {
     this.xhr.addEventListener('load', function (e) {
       // TODO: expect(e).not.toBeUndefined();
       if (this.xhr.readyState === 4) {
-        resolve("Woo");
+        resolve('Woo');
       } else {
-        reject("readyState is not 4: " + this.xhr.readyState);
+        reject('readyState is not 4: ' + this.xhr.readyState);
       }
-    });
+    }.bind(this));
 
-    this.xhr.open('GET', 'http://isup.me');
+//    this.xhr.open('GET', 'http://isup.me');
+    this.xhr.open('GET', 'https://api.github.com/');
     this.xhr.send(null);
   }.bind(this));
 };

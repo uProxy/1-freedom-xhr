@@ -17,19 +17,19 @@ describe('Basic XMLHttpRequest integration tests', function() {
   };
 
   it('corexhr: constructs XHRs', function(done) {
-    runTest(done, "corexhr", "testHasXhr");
+    runTest(done, 'corexhr', 'testHasXhr');
   });
 
   it('coretcpsocket: constructs XHRs', function(done) {
-    runTest(done, "coretcpsocket", "testHasXhr");
+    runTest(done, 'coretcpsocket', 'testHasXhr');
   });
 
   it('corexhr: load event', function(done) {
-    runTest(done, "corexhr", "testLoadEvent");
+    runTest(done, 'corexhr', 'testLoadEvent');
   });
 
   it('coretcpsocket: load event', function(done) {
-    runTest(done, "coretcpsocket", "testLoadEvent");
+    runTest(done, 'coretcpsocket', 'testLoadEvent');
   });
 
 });
