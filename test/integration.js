@@ -36,16 +36,36 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'corexhr', 'testErrorEvent');
   });
 
+  it('coretcpsocket: error event', function(done) {
+    runTest(done, 'coretcpsocket', 'testErrorEvent');
+  });
+
   it('corexhr: timeout event', function(done) {
     runTest(done, 'corexhr', 'testTimeoutEvent');
+  });
+
+  it('coretcpsocket: timeout event', function(done) {
+    runTest(done, 'coretcpsocket', 'testTimeoutEvent');
   });
 
   it('corexhr: gets response on load', function(done) {
     runTest(done, 'corexhr', 'testLoadGetResponse');
   });
 
+  it('coretcpsocket: gets response on load', function(done) {
+    runTest(done, 'coretcpsocket', 'testLoadGetResponse');
+  });
+
   it('corexhr: gets response on done', function(done) {
     runTest(done, 'corexhr', 'testDoneGetResponse');
+  });
+
+  it('coretcpsocket: gets response on done', function(done) {
+    runTest(done, 'coretcpsocket', 'testDoneGetResponse');
+  });
+
+  it('coretcpsocket: domain fronting', function(done) {
+    runTest(done, 'coretcpsocket', 'testDomainFronting');
   });
 
 });

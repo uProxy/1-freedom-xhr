@@ -29,7 +29,7 @@ xhrdemo.prototype.testLoadEvent = function() {
     }.bind(this));
 
 //    this.xhr.open('GET', 'http://isup.me');
-    this.xhr.open('GET', 'https://api.github.com/');
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
     this.xhr.send(null);
   }.bind(this));
 };
@@ -71,12 +71,12 @@ xhrdemo.prototype.testLoadGetResponse = function() {
         // Check that the page is valid JSON
         var parsed = JSON.parse(this.xhr.responseText);
         resolve('Woo');
-      } catch (e) {
-        reject('responseText isn\'t valid JSON:' + e.message);
+      } catch (err) {
+        reject('responseText isn\'t valid JSON:' + err.message);
       }
     }.bind(this));
 
-    this.xhr.open('GET', 'https://api.github.com/');
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
     this.xhr.send(null);
   }.bind(this));
 };
@@ -93,15 +93,56 @@ xhrdemo.prototype.testDoneGetResponse = function() {
           // Check that the page is valid JSON
           var parsed = JSON.parse(this.xhr.responseText);
           resolve('Woo');
-        } catch (e) {
-          reject('responseText isn\'t valid JSON:' + e.message);
+        } catch (err) {
+          reject('responseText isn\'t valid JSON:' + err.message);
         }
       }
     }.bind(this));
 
-    this.xhr.open('GET', 'https://api.github.com/');
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
     this.xhr.send(null);
   }.bind(this));
+};
+
+xhrdemo.prototype.testDomainFronting = function() {
+  var p = new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('load', function(e) {
+      var validLoaded = e.loaded >= 0;
+      if (!validLoaded) {
+        reject('load event but e.loaded == ' + e.loaded);
+      }
+      var validTotal = e.total >= 0;
+      if (!validTotal) {
+        reject('load event but e.total == ' + e.total);
+      }
+      if (this.xhr.readyState !== 4) {
+        reject('readyState should be 4, not ' + this.xhr.readyState);
+      }
+      if (this.xhr.status !== 200) {
+        reject('status should be 200 ' + this.xhr.status);
+      }
+      if (this.xhr.statusText !== 'OK') {
+        reject('statusText should be OK, not ' + this.xhr.statusText);
+      }
+      if (!this.xhr.responseText.match(/I.m just a happy little web server.\n/)) {
+        reject('unexpected responseText: ' + this.xhr.responseText);
+      }
+      if (this.xhr.response !== this.xhr.responseText) {
+        reject(this.xhr.response + ' !== ' + this.xhr.responseText);
+      }
+      if (this.xhr.responseURL !== 'https://ajax.aspnetcdn.com/') {
+        reject('Unexpected responseURL: ' + this.xhr.responseURL);
+      }
+      resolve('Woo');
+    }.bind(this));
+  }.bind(this));
+
+  // This is a domain-fronting test server operated by Tor: see
+  // https://trac.torproject.org/projects/tor/wiki/doc/meek#MicrosoftAzure
+  this.xhr.open('GET', 'https://ajax.aspnetcdn.com/', true);
+  this.xhr.setRequestHeader('Host', 'az786092.vo.msecnd.net');
+  this.xhr.send(null);
+  return p;
 };
 
     /**

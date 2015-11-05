@@ -133,12 +133,12 @@ XhrShim.prototype.refresh_ = function() {
     this.xhr_.getResponse().then(function(response) {
       if (!response) {
         this.response = response;
-      } else if (response.buffer) {
+      } else if ('buffer' in response) {
         this.log_('XhrShim got response buffer: ' + bufferToString(response.buffer));
         this.response = response.buffer;
-      } else if (response.object) {
+      } else if ('object' in response) {
         this.response = response.object;
-      } else if (response.string) {
+      } else if ('string' in response) {
         this.response = response.string;
       } else {
         throw new Error('XhrShim: unrecognized response ' + JSON.stringify(response));
@@ -257,7 +257,12 @@ XhrShim.prototype.abort = function(data) {
 };
 
 XhrShim.prototype.parseResponseHeaders_ = function(headers) {
+  if (!headers) {
+    return;
+  }
   var lines = headers.split('\r\n');
+  // Skip HTTP/1.1 200 OK
+  //lines.slice(1).forEach(function(line) {
   lines.forEach(function(line) {
     if (line.length === 0) {
       return;

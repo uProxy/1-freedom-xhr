@@ -23,8 +23,8 @@
                         'User-Agent': 'core.tcpsocket.xhr'
                     },
                     response: {
-                        headers: [],
-                        headersText: null
+                        headers: {},
+                        headersText: ''
                     }
                 }
             },
@@ -168,7 +168,7 @@
             responseText: {
                 enumerable: true,
                 writable: true,
-                value: null
+                value: ''
             },
 
             /**
@@ -450,7 +450,11 @@
      * http://www.w3.org/TR/XMLHttpRequest/#the-getresponseheader()-method
      */
     ChromeSocketsXMLHttpRequest.prototype.getResponseHeader = function (header) {
-        return this.options.response.headers[header];
+        for (var responseHeader in this.options.response.headers) {
+            if (responseHeader.toLowerCase() === header.toLowerCase()) {
+                return this.options.response.headers[responseHeader];
+            }
+        }
     };
 
     /**
@@ -534,8 +538,15 @@
         // Pause the socket as soon as it's connected.
         // This is needed for HTTPS.  The socket will be unpaused after calling .secure
         // (if necessary).
-        this.socket.connect(this.options.uri[2], port).
-            then(this.onConnect.bind(this, 0)).
+        var connect;
+        if (this.options.uri[1] === 'https') {
+          connect = this.socket.prepareSecure().then(function() {
+            return this.socket.connect(this.options.uri[2], port);
+          }.bind(this));
+        } else {
+          connect = this.socket.connect(this.options.uri[2], port);
+        }
+        connect.then(this.onConnect.bind(this, 0)).
             catch(this.onConnect.bind(this, -1));
     };
 
@@ -553,29 +564,30 @@
             });
         } else if (this.options.uri[1] === 'https' && !this.tlsStarted) {
             var options = {};
-            this.socket.prepareSecure().
-                then(this.socket.secure.bind(this.socket)).then(function() {
+            this.socket.secure(this.socket).then(function() {
                 this.tlsStarted = true;
                 this.onConnect(0);
-            }.bind(this)).catch(function() {
-                this.onConnect(-1);
-            }.bind(this));
+            }.bind(this)).catch(this.onConnect.bind(this, -1));
         } else {
             // assign recieve listner
             this.socket.on('onData', this.onReceive.bind(this));
 
+            //this.socket.on('onDisconnect', this.onDisconnect.bind(this));
+
             // send message as ArrayBuffer
             this.generateMessage().toArrayBuffer(function sendMessage (buffer) {
-                this.socket.write(buffer).then(this.onSend.bind(this));
+                this.socket.write(buffer).then(
+                    this.onSend.bind(this, 0),
+                    this.onSend.bind(this, -1));
             }.bind(this));
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onSend = function (sendInfo) {
-        if (sendInfo.resultCode < 0) {
+    ChromeSocketsXMLHttpRequest.prototype.onSend = function (resultCode) {
+        if (resultCode < 0) {
             this.error({
                 error: 'send error',
-                resultCode: sendInfo.resultCode
+                resultCode: resultCode
             });
 
             this.disconnect();
@@ -590,54 +602,50 @@
     };
 
     ChromeSocketsXMLHttpRequest.prototype.onReceive = function (info) {
-        // TODO: add an onDisconnect listener
-
         if (!this.options.inprogress) {
             return;
         }
 
-        // immediately disconnect on first respond
-        this.disconnect();
-
         info.data.toString(this.parseResponse.bind(this));
+    };
+
+    ChromeSocketsXMLHttpRequest.prototype.onDisconnect = function () {
+      if (this.readyState == this.LOADING) {
+        this.processResponse(false);  // Indicate failure (incomplete response)
+      }
     };
 
     /**
      * internal methods
      */
-    ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (response) {
-        // detect CRLFx2 position
-        var responseMatch = response.match(/\r\n\r\n/);
+    ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (chunk) {
+        if (this.readyState < this.HEADERS_RECEIVED) {
+          this.options.response.headersText += chunk;
+          // detect CRLFx2 position
+          var headersEndMatch = this.options.response.headersText.match(/\r\n\r\n/);
 
-        // something went wrong
-        if (responseMatch === null) {
-            this.error({
-                error: 'could not parse response'
-            });
+          // headers are not yet complete.
+          if (headersEndMatch === null) {
+              return;
+          }
 
-            return;
-        }
+          // Split the headers and preserve the chunk of body.
+          chunk = this.options.response.headersText.slice(headersEndMatch.index + 4);
+          this.options.response.headersText =
+              this.options.response.headersText.slice(0, headersEndMatch.index);
 
-        // slice the headers up to CRLFx2
-        this.options.response.headersText = response.slice(0, responseMatch.index);
+          // parse headers, discarding the HTTP top-line
+          var headerLines = this.options.response.headersText.split('\r\n');
+          var statusLine = headerLines.shift();
 
-        // slice the body right after CRLFx2 and set the response object
-        this.responseText = response.slice(responseMatch.index + 4);
+          var statusLineMatch = statusLine.match(/(HTTP\/\d\.\d)\s+((\d+)\s+(.*))/);
 
-        this.responseURL = this.options.uri[0];
-
-        // parse headers
-        var headerLines = this.options.response.headersText.split('\r\n');
-        var statusLine = headerLines.shift();
-
-        var statusLineMatch = statusLine.match(/(HTTP\/\d\.\d)\s+((\d+)\s+(.*))/);
-
-        if (statusLineMatch) {
+          if (statusLineMatch) {
             this.status = parseInt(statusLineMatch[3], 0);
             this.statusText = statusLineMatch[4];
-        }
+          }
 
-        headerLines.forEach(function (headerLine) {
+          headerLines.forEach(function (headerLine) {
             // detect CRLFx2 position
             var headerLineMatch = headerLine.match(/:/);
 
@@ -649,13 +657,39 @@
 
                 this.options.response.headers[header] = value;
             }
-        }.bind(this));
+          }.bind(this));
 
-        this.processResponse();
+          // redirects or changes to HEADERS_RECEIVED state
+          if (this.maybeRedirect()) {
+            return;
+          }
+
+          this.responseURL = this.options.uri[0];
+
+        }
+
+        this.responseText += chunk;
+        if (this.responseText.length > 0 && this.readyState === this.HEADERS_RECEIVED) {
+          this.readyState = this.LOADING;
+        }
+
+        var contentLength = Number(this.getResponseHeader('Content-length')) || 0;
+        if (contentLength > 0) {
+          this.responseText.toArrayBuffer(function(responseBuffer) {
+            console.log('Got ' + responseBuffer.byteLength + ' bytes out of ' + contentLength);
+            if (responseBuffer.byteLength === contentLength) {
+              // Indicate a successful load
+              this.processResponse(true);
+            } else if (chunk.length > 0) {
+              this.dispatchProgressEvent('progress');
+            }
+          }.bind(this));
+        }
+
+        // TODO: Handle the zero-length segment demarcation method.
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.processResponse = function () {
-
+    ChromeSocketsXMLHttpRequest.prototype.maybeRedirect = function () {
         // If the response has an HTTP status code of 301, 302, 303, 307, or 308
         // TODO: implement infinite loop precautions
         if ([301, 302, 303, 307, 308].indexOf(this.status) !== -1) {
@@ -675,7 +709,7 @@
                     resultCode: 310
                 });
 
-                return;
+                return false;
             }
 
             // detect a loop
@@ -684,7 +718,7 @@
                     error: 'redirect loop'
                 });
 
-                return;
+                return false;
             } else {
                 this.options.redirects.last = redirectUrl;
             }
@@ -692,31 +726,36 @@
             // count
             this.options.redirects.current++;
 
+            // clear response headers
+            this.options.response.headersText = '';
+            this.options.response.headers = [];
+
             // start a new call
             this.open(this.options.method, redirectUrl);
             this.send(this.options.data);
 
-            return;
+            return true;
         }
 
         // set readyState to HEADERS_RECEIVED
         this.readyState = this.HEADERS_RECEIVED;
-        // set readyState to LOADING
-        this.readyState = this.LOADING;
 
+        return false;
+    };
+
+    ChromeSocketsXMLHttpRequest.prototype.processResponse = function (success) {
         // TODO: set the response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (for "json"), or string.
         this.response = this.responseText;
 
         // set readyState to DONE
         this.readyState = this.DONE;
 
-        // Fire a progress event named "progress".
         this.dispatchProgressEvent('progress');
 
-        // Fire a progress event named load.
-        this.dispatchProgressEvent('load');
+        if (success) {
+          this.dispatchProgressEvent('load');
+        }
 
-        // Fire a progress event named loadend
         this.dispatchProgressEvent('loadend');
     };
 
@@ -726,7 +765,13 @@
         // add missing parts to header
         headers.push(this.options.method + ' ' + this.options.uri[4] + ' HTTP/1.1');
 
+        // put the host header first
+        headers.push('Host: ' + this.options.headers['Host']);
+
         for (var name in this.options.headers) {
+            if (name === 'Host') {
+              continue;
+            }
             headers.push(name + ': ' + this.options.headers[name]);
         }
 
@@ -914,7 +959,7 @@
                 error: 'timed out'
             });
 
-            this.dispatchEvent('timeout');
+            this.dispatchProgressEvent('timeout');
         }
     };
 
