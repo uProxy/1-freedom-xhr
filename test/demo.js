@@ -104,6 +104,28 @@ xhrdemo.prototype.testDoneGetResponse = function() {
   }.bind(this));
 };
 
+xhrdemo.prototype.testPost = function() {
+  var postString = "freedom-xhr post test contents";
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
+          return;
+        }
+        if (this.xhr.responseText.match(postString)) {
+          resolve('Woo');
+        } else {
+          reject('Wrong responseText: ' + this.xhr.responseText);
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('POST', 'https://posttestserver.com/post.php?dump');
+    this.xhr.send(postString);
+  }.bind(this));
+};
+
 xhrdemo.prototype.testDomainFronting = function() {
   var p = new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function(e) {

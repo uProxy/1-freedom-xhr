@@ -15,6 +15,7 @@
       "testTimeoutEvent": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testLoadGetResponse": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testDoneGetResponse": { "type": "method", "value": [], "ret": "string", "err": "string" },
+      "testPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testDomainFronting": { "type": "method", "value": [], "ret": "string", "err": "string" }
     }
   },

@@ -64,6 +64,14 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'coretcpsocket', 'testDoneGetResponse');
   });
 
+  it('corexhr: can post', function(done) {
+    runTest(done, 'corexhr', 'testPost');
+  });
+
+  it('coretcpsocket: can post', function(done) {
+    runTest(done, 'coretcpsocket', 'testPost');
+  });
+
   it('coretcpsocket: domain fronting', function(done) {
     runTest(done, 'coretcpsocket', 'testDomainFronting');
   });
