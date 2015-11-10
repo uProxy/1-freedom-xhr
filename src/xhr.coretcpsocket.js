@@ -572,14 +572,15 @@
             // assign recieve listner
             this.socket.on('onData', this.onReceive.bind(this));
 
-            //this.socket.on('onDisconnect', this.onDisconnect.bind(this));
+            this.socket.on('onDisconnect', this.onDisconnect.bind(this));
 
             // send message as ArrayBuffer
-            this.generateMessage().toArrayBuffer(function sendMessage (buffer) {
-                this.socket.write(buffer).then(
-                    this.onSend.bind(this, 0),
-                    this.onSend.bind(this, -1));
-            }.bind(this));
+            var requestHeaderString = this.generateMessage();
+            var encoder = new TextEncoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
+            var byteArray = encoder.encode(requestHeaderString);
+            this.socket.write(byteArray.buffer).then(
+                this.onSend.bind(this, 0),
+                this.onSend.bind(this, -1));
         }
     };
 
@@ -606,7 +607,7 @@
             return;
         }
 
-        info.data.toString(this.parseResponse.bind(this));
+        this.parseResponse(info.data);
     };
 
     ChromeSocketsXMLHttpRequest.prototype.onDisconnect = function () {
@@ -618,7 +619,9 @@
     /**
      * internal methods
      */
-    ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (chunk) {
+    ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (buffer) {
+        var decoder = new TextDecoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
+        var chunk = decoder.decode(buffer);
         if (this.readyState < this.HEADERS_RECEIVED) {
           this.options.response.headersText += chunk;
           // detect CRLFx2 position
@@ -675,15 +678,15 @@
 
         var contentLength = Number(this.getResponseHeader('Content-length')) || 0;
         if (contentLength > 0) {
-          this.responseText.toArrayBuffer(function(responseBuffer) {
-            console.log('Got ' + responseBuffer.byteLength + ' bytes out of ' + contentLength);
-            if (responseBuffer.byteLength === contentLength) {
-              // Indicate a successful load
-              this.processResponse(true);
-            } else if (chunk.length > 0) {
-              this.dispatchProgressEvent('progress');
-            }
-          }.bind(this));
+          var encoder = new TextEncoder('utf-8');
+          var reconstructedReponseBytes = encoder.encode(this.responseText);
+          console.log('Got ' + reconstructedReponseBytes.byteLength + ' bytes out of ' + contentLength);
+          if (reconstructedReponseBytes.byteLength === contentLength) {
+            // Indicate a successful load
+            this.processResponse(true);
+          } else if (chunk.length > 0) {
+            this.dispatchProgressEvent('progress');
+          }
         }
 
         // TODO: Handle the zero-length segment demarcation method.
@@ -965,32 +968,6 @@
 
     ChromeSocketsXMLHttpRequest.prototype.setMaxRedirects = function (max) {
         this.options.redirects.max = max;
-    };
-
-    /**
-     * internal methods
-     * TODO: consider removing from global objects
-     */
-    ArrayBuffer.prototype.toString = function (callback) {
-        var blob = new Blob([this]);
-        var reader = new FileReader();
-
-        reader.onload = function (e) {
-            callback(e.target.result);
-        };
-
-        reader.readAsText(blob);
-    };
-
-    String.prototype.toArrayBuffer = function (callback) {
-        var blob = new Blob([this]);
-        var reader = new FileReader();
-
-        reader.onload = function (e) {
-            callback(e.target.result);
-        };
-
-        reader.readAsArrayBuffer(blob);
     };
 
 module.exports = ChromeSocketsXMLHttpRequest;
