@@ -24,7 +24,8 @@
                     },
                     response: {
                         headers: {},
-                        headersText: ''
+                        headersText: '',
+                        contentChunks: []
                     }
                 }
             },
@@ -634,10 +635,17 @@
     /**
      * internal methods
      */
+    ChromeSocketsXMLHttpRequest.prototype.bytesReceived = function () {
+        return this.options.response.contentChunks.reduce(function(bytes, chunk) {
+          return bytes + chunk.byteLength;
+        }, 0);
+    };
+
     ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (buffer) {
-        var decoder = new TextDecoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
-        var chunk = decoder.decode(buffer);
         if (this.readyState < this.HEADERS_RECEIVED) {
+          var decoder = new TextDecoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
+          var chunk = decoder.decode(buffer);
+          var headersLengthBefore = this.options.response.headersText.length;
           this.options.response.headersText += chunk;
           // detect CRLFx2 position
           var headersEndMatch = this.options.response.headersText.match(/\r\n\r\n/);
@@ -648,7 +656,8 @@
           }
 
           // Split the headers and preserve the chunk of body.
-          chunk = this.options.response.headersText.slice(headersEndMatch.index + 4);
+          var bytesUsedFromBuffer = headersEndMatch.index + 4 - headersLengthBefore;
+          buffer = buffer.slice(bytesUsedFromBuffer);
           this.options.response.headersText =
               this.options.response.headersText.slice(0, headersEndMatch.index);
 
@@ -684,27 +693,30 @@
 
           this.responseURL = this.options.uri[0];
 
+          if (buffer.byteLength === 0) {
+            // Needed to avoid a false zero-length segment termination trigger.
+            return;
+          }
         }
 
-        this.responseText += chunk;
-        if (this.responseText.length > 0 && this.readyState === this.HEADERS_RECEIVED) {
+        this.options.response.contentChunks.push(buffer);
+        if (this.readyState === this.HEADERS_RECEIVED) {
           this.readyState = this.LOADING;
         }
 
         var contentLength = Number(this.getResponseHeader('Content-length')) || 0;
         if (contentLength > 0) {
-          var encoder = new TextEncoder('utf-8');
-          var reconstructedReponseBytes = encoder.encode(this.responseText);
-          console.log('Got ' + reconstructedReponseBytes.byteLength + ' bytes out of ' + contentLength);
-          if (reconstructedReponseBytes.byteLength === contentLength) {
+          // TODO: Cache bytesReceived to avoid O(N^2) behavior
+          if (this.bytesReceived() === contentLength) {
             // Indicate a successful load
             this.processResponse(true);
-          } else if (chunk.length > 0) {
+          } else if (buffer.byteLength > 0) {
             this.dispatchProgressEvent('progress');
           }
+        } else if (buffer.byteLength === 0) {
+          // Receipt of a zero-length segment indicates loading has completed.
+          this.processResponse(true);
         }
-
-        // TODO: Handle the zero-length segment demarcation method.
     };
 
     ChromeSocketsXMLHttpRequest.prototype.maybeRedirect = function () {
@@ -762,8 +774,35 @@
     };
 
     ChromeSocketsXMLHttpRequest.prototype.processResponse = function (success) {
-        // TODO: set the response entity body according to responseType, as an ArrayBuffer, Blob, Document, JavaScript object (for "json"), or string.
-        this.response = this.responseText;
+        var chunks = this.options.response.contentChunks;
+        if (!this.responseType || this.responseType === 'text' ||
+            this.responseType === 'json' || this.responseType === 'document') {
+          var text = '';
+          // TODO: Handle other encodings
+          var decoder = new TextDecoder('utf-8');
+          chunks.forEach(function(buffer) {
+            text += decoder.decode(buffer, {stream: true});
+          }, this);
+          text += decoder.decode();  // end of stream
+          if (!this.responseType || this.responseType === 'text') {
+            this.response = this.responseText = text;
+          } else if (this.responseType === 'json') {
+            this.response = JSON.parse(text);
+          } else if (this.responseType === 'document') {
+            this.response = text;  // TODO: Support document mode when not in a worker
+          }
+        } else if (this.responseType === 'arraybuffer') {
+          var length = this.bytesReceived();
+          this.response = new ArrayBuffer(length);
+          var array = new Uint8Array(this.response);
+          for (var i = 0, bytes = 0; i < chunks.length; bytes += chunks[i].byteLength, ++i) {
+            array.set(new Uint8Array(chunks[i]), bytes);
+          }
+        } else if (this.responseType === 'blob') {
+          this.response = new Blob(chunks);
+        }
+
+        this.options.response.contentChunks.length = 0;  // Free memory.
 
         // set readyState to DONE
         this.readyState = this.DONE;

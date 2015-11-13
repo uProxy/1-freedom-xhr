@@ -64,12 +64,47 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'coretcpsocket', 'testDoneGetResponse');
   });
 
+  it('corexhr: get arraybuffer', function(done) {
+    runTest(done, 'corexhr', 'testGetArrayBuffer');
+  });
+
+  it('coretcpsocket: gets arraybuffer', function(done) {
+    runTest(done, 'coretcpsocket', 'testGetArrayBuffer');
+  });
+
+/*
+  // Getting a blob is not yet supported with core.xhr
+  it('corexhr: get blob', function(done) {
+    runTest(done, 'corexhr', 'testGetBlob');
+  });
+*/
+
+  it('coretcpsocket: get blob', function(done) {
+    runTest(done, 'coretcpsocket', 'testGetBlob');
+  });
+
+  it('corexhr: get JSON', function(done) {
+    runTest(done, 'corexhr', 'testGetJSON');
+  });
+
+  it('coretcpsocket: gets JSON', function(done) {
+    runTest(done, 'coretcpsocket', 'testGetJSON');
+  });
+
   it('corexhr: can post', function(done) {
     runTest(done, 'corexhr', 'testPost');
   });
 
   it('coretcpsocket: can post', function(done) {
     runTest(done, 'coretcpsocket', 'testPost');
+  });
+
+  it('corexhr: can post a blob', function(done) {
+    runTest(done, 'corexhr', 'testBlobPost');
+  });
+
+  it('coretcpsocket: can post a blob', function(done) {
+    runTest(done, 'coretcpsocket', 'testBlobPost');
   });
 
   it('coretcpsocket: domain fronting', function(done) {

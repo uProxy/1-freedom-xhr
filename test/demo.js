@@ -104,8 +104,91 @@ xhrdemo.prototype.testDoneGetResponse = function() {
   }.bind(this));
 };
 
+xhrdemo.prototype.testGetArrayBuffer = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
+          return;
+        }
+        try {
+          var decoder = new TextDecoder('utf-8');
+          var responseText = decoder.decode(this.xhr.response);
+          // Check that the page is valid JSON
+          var parsed = JSON.parse(responseText);
+          resolve('Woo');
+        } catch (err) {
+          reject('responseText isn\'t valid utf-8 or JSON: ' + err.message);
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
+    this.xhr.responseType = 'arraybuffer';
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testGetBlob = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
+          return;
+        }
+        try {
+          var fileReader = new FileReader();
+          fileReader.onload = function() {
+            var buffer = fileReader.result;
+            var decoder = new TextDecoder('utf-8');
+            try {
+              var responseText = decoder.decode(buffer);
+              // Check that the page is valid JSON
+              var parsed = JSON.parse(responseText);
+            } catch (err) {
+              reject('response isn\'t valid JSON: ' + err.message);
+            }
+          }.bind(this);
+          fileReader.readAsArrayBuffer(this.xhr.response);
+          resolve('Woo');
+        } catch (err) {
+          reject('FileReader can\'t read the blob: ' + err.message);
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
+    this.xhr.responseType = 'blob';
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testGetJSON = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
+          return;
+        }
+        if (this.xhr.response && this.xhr.response.discoveryVersion) {
+          resolve('Woo');
+        } else {
+          reject('response isn\'t in the expected format');
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://www.googleapis.com/discovery/v1/apis/');
+    this.xhr.responseType = 'json';
+    this.xhr.send(null);
+  }.bind(this));
+};
+
 xhrdemo.prototype.testPost = function() {
-  var postString = "freedom-xhr post test contents";
+  var postString = 'freedom-xhr post test contents';
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
@@ -123,6 +206,29 @@ xhrdemo.prototype.testPost = function() {
 
     this.xhr.open('POST', 'https://posttestserver.com/post.php?dump');
     this.xhr.send(postString);
+  }.bind(this));
+};
+
+xhrdemo.prototype.testBlobPost = function() {
+  var postString = 'freedom-xhr post test contents';
+  var postBlob = new Blob([postString], {type: 'text/plain'});
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.statusText !== 'OK') {
+          reject('statusText not `OK`: ' + this.xhr.statusText);
+          return;
+        }
+        if (this.xhr.responseText.match(postString)) {
+          resolve('Woo');
+        } else {
+          reject('Wrong responseText: ' + this.xhr.responseText);
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('POST', 'https://posttestserver.com/post.php?dump');
+    this.xhr.send(postBlob);
   }.bind(this));
 };
 
