@@ -273,20 +273,4 @@ xhrdemo.prototype.testDomainFronting = function() {
   return p;
 };
 
-    /**
-
-    it ('SSL support', function (done) {
-        xhr.addEventListener('readystatechange', function () {
-            if (this.readyState === this.DONE) {
-                expect(xhr.statusText).toBe('OK');
-                done();
-            }
-        });
-
-        xhr.open('GET', 'https://www.httpsnow.org/');
-        xhr.send(null);
-    });
-    **/
-
-
 freedom().providePromises(xhrdemo);
