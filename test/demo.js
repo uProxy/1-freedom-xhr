@@ -273,4 +273,45 @@ xhrdemo.prototype.testDomainFronting = function() {
   return p;
 };
 
+xhrdemo.prototype.testFrontDomain = function() {
+  // This is a domain-fronting test server operated by Tor: see
+  // https://trac.torproject.org/projects/tor/wiki/doc/meek#MicrosoftAzure
+  var frontDomainUrl = 'https://ajax.aspnetcdn.com.az786092.vo.msecnd.net.3.domainfront';
+  var p = new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('load', function(e) {
+      var validLoaded = e.loaded >= 0;
+      if (!validLoaded) {
+        reject('load event but e.loaded == ' + e.loaded);
+      }
+      var validTotal = e.total >= 0;
+      if (!validTotal) {
+        reject('load event but e.total == ' + e.total);
+      }
+      if (this.xhr.readyState !== 4) {
+        reject('readyState should be 4, not ' + this.xhr.readyState);
+      }
+      if (this.xhr.status !== 200) {
+        reject('status should be 200 ' + this.xhr.status);
+      }
+      if (this.xhr.statusText !== 'OK') {
+        reject('statusText should be OK, not ' + this.xhr.statusText);
+      }
+      if (!this.xhr.responseText.match(/I.m just a happy little web server.\n/)) {
+        reject('unexpected responseText: ' + this.xhr.responseText);
+      }
+      if (this.xhr.response !== this.xhr.responseText) {
+        reject(this.xhr.response + ' !== ' + this.xhr.responseText);
+      }
+      if (this.xhr.responseURL !== frontDomainUrl) {
+        reject('Unexpected responseURL: ' + this.xhr.responseURL);
+      }
+      resolve('Woo');
+    }.bind(this));
+  }.bind(this));
+
+  this.xhr.open('GET', frontDomainUrl);
+  this.xhr.send(null);
+  return p;
+};
+
 freedom().providePromises(xhrdemo);

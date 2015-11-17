@@ -1,3 +1,4 @@
+var frontdomain = require('./frontdomain');
 var TcpXhr = function () {
     Object.defineProperties(this, {
         options: {
@@ -339,7 +340,11 @@ TcpXhr.prototype.open = function (method, url) {
     // set readyState to OPENED
     this.readyState = this.OPENED;
 
-    this.setRequestHeader('Host', this.options.uri[2]);
+    var domain = this.options.uri[2];
+    if (frontdomain.isFront(domain)) {
+      domain = frontdomain.demunge(domain).host;
+    }
+    this.setRequestHeader('Host', domain);
 };
 
 /**
@@ -542,6 +547,11 @@ TcpXhr.prototype.onCreate = function (socket) {
         return;
     }
 
+    var domain = this.options.uri[2];
+    if (frontdomain.isFront(domain)) {
+      domain = frontdomain.demunge(domain).front;
+    }
+
     var defaultPort = this.options.uri[1] === 'https' ? 443 : 80;
     var port = this.options.uri[3] ? parseInt(this.options.uri[3], null) : defaultPort;
 
@@ -553,10 +563,10 @@ TcpXhr.prototype.onCreate = function (socket) {
     var connect;
     if (this.options.uri[1] === 'https') {
       connect = this.socket.prepareSecure().then(function() {
-        return this.socket.connect(this.options.uri[2], port);
+        return this.socket.connect(domain, port);
       }.bind(this));
     } else {
-      connect = this.socket.connect(this.options.uri[2], port);
+      connect = this.socket.connect(domain, port);
     }
     connect.then(this.onConnect.bind(this, 0)).
         catch(this.onConnect.bind(this, -1));

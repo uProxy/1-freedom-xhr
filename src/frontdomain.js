@@ -1,4 +1,4 @@
-var MAGIC_TLD = 'domain_front';
+var MAGIC_TLD = 'domainfront';
 
 function munge(front, host) {
   var frontLength = front.split('.').length;

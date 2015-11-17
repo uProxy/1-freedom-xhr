@@ -107,8 +107,12 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'coretcpsocket', 'testBlobPost');
   });
 
-  it('coretcpsocket: domain fronting', function(done) {
+  it('coretcpsocket: explicit domain fronting', function(done) {
     runTest(done, 'coretcpsocket', 'testDomainFronting');
+  });
+
+  it('coretcpsocket: front domain', function(done) {
+    runTest(done, 'coretcpsocket', 'testFrontDomain');
   });
 
 });
