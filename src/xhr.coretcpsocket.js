@@ -1,4 +1,4 @@
-    var ChromeSocketsXMLHttpRequest = function () {
+    var TcpXhr = function () {
         Object.defineProperties(this, {
             options: {
                 enumerable: false,
@@ -279,7 +279,7 @@
      *
      * https://gist.github.com/dperini/729294
      */
-    ChromeSocketsXMLHttpRequest.prototype.regex = new RegExp(
+    TcpXhr.prototype.regex = new RegExp(
         '^' +
             // protocol identifier
             '(?:(https?|ftp)://)' +
@@ -317,7 +317,7 @@
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-open()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.open = function (method, url) {
+    TcpXhr.prototype.open = function (method, url) {
         this.options.method = method;
         this.options.uri = this.regex.exec(url);
 
@@ -345,7 +345,7 @@
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.setRequestHeader = function (header, value) {
+    TcpXhr.prototype.setRequestHeader = function (header, value) {
         if (this.readyState !== this.OPENED || this.options.inprogress === true) {
             throw new TypeError('InvalidStateError');
         }
@@ -365,7 +365,7 @@
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-send()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.send = function (data) {
+    TcpXhr.prototype.send = function (data) {
         // If the state is not OPENED, throw an "InvalidStateError" exception.
         // If the send() flag is set, throw an "InvalidStateError" exception.
         if (this.readyState !== this.OPENED || this.options.inprogress === true) {
@@ -454,14 +454,14 @@
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.abort = function () {
+    TcpXhr.prototype.abort = function () {
         this.disconnect();
     };
 
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-getresponseheader()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.getResponseHeader = function (header) {
+    TcpXhr.prototype.getResponseHeader = function (header) {
         for (var responseHeader in this.options.response.headers) {
             if (responseHeader.toLowerCase() === header.toLowerCase()) {
                 return this.options.response.headers[responseHeader];
@@ -472,20 +472,20 @@
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.getAllResponseHeaders = function () {
+    TcpXhr.prototype.getAllResponseHeaders = function () {
         return this.options.response.headersText;
     };
 
     /**
      * http://www.w3.org/TR/XMLHttpRequest/#the-overridemimetype()-method
      */
-    ChromeSocketsXMLHttpRequest.prototype.overrideMimeType = function (mimetype) {
+    TcpXhr.prototype.overrideMimeType = function (mimetype) {
     };
 
     /**
      * event managers
      */
-    ChromeSocketsXMLHttpRequest.prototype.addEventListener = function (name, callback) {
+    TcpXhr.prototype.addEventListener = function (name, callback) {
         if (this.options.events[name]) {
             this.options.events[name].push(callback);
         } else {
@@ -495,7 +495,7 @@
         return this;
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.removeEventListener = function(name, callback) {
+    TcpXhr.prototype.removeEventListener = function(name, callback) {
         if (this.options.events[name]) {
             var i = this.options.events[name].indexOf(callback);
             if (i > -1) {
@@ -510,7 +510,7 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.dispatchProgressEvent = function(name) {
+    TcpXhr.prototype.dispatchProgressEvent = function(name) {
         this.dispatchEvent(name, {
             lengthComputable: false,
             loaded: 0,
@@ -518,7 +518,7 @@
         });
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.dispatchEvent = function(name, e) {
+    TcpXhr.prototype.dispatchEvent = function(name, e) {
         if (this.hasOwnProperty('on' + name)) {
             if (this['on' + name]) {
                 this['on' + name].call(this, e);
@@ -537,7 +537,7 @@
     /**
      * core.tcpsocket events
      */
-    ChromeSocketsXMLHttpRequest.prototype.onCreate = function (socket) {
+    TcpXhr.prototype.onCreate = function (socket) {
         if (!this.options.inprogress) {
             return;
         }
@@ -562,7 +562,7 @@
             catch(this.onConnect.bind(this, -1));
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onConnect = function (result) {
+    TcpXhr.prototype.onConnect = function (result) {
         if (!this.options.inprogress) {
             return;
         }
@@ -600,7 +600,7 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onSend = function (resultCode) {
+    TcpXhr.prototype.onSend = function (resultCode) {
         if (resultCode < 0) {
             this.error({
                 error: 'send error',
@@ -611,14 +611,14 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onReceiveError = function (info) {
+    TcpXhr.prototype.onReceiveError = function (info) {
         this.error({
             error: 'receive error',
             resultCode: info.resultCode
         });
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onReceive = function (info) {
+    TcpXhr.prototype.onReceive = function (info) {
         if (!this.options.inprogress) {
             return;
         }
@@ -626,7 +626,7 @@
         this.parseResponse(info.data);
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.onDisconnect = function () {
+    TcpXhr.prototype.onDisconnect = function () {
       if (this.readyState == this.LOADING) {
         this.processResponse(false);  // Indicate failure (incomplete response)
       }
@@ -635,13 +635,13 @@
     /**
      * internal methods
      */
-    ChromeSocketsXMLHttpRequest.prototype.bytesReceived = function () {
+    TcpXhr.prototype.bytesReceived = function () {
         return this.options.response.contentChunks.reduce(function(bytes, chunk) {
           return bytes + chunk.byteLength;
         }, 0);
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.parseResponse = function (buffer) {
+    TcpXhr.prototype.parseResponse = function (buffer) {
         if (this.readyState < this.HEADERS_RECEIVED) {
           var decoder = new TextDecoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
           var chunk = decoder.decode(buffer);
@@ -719,7 +719,7 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.maybeRedirect = function () {
+    TcpXhr.prototype.maybeRedirect = function () {
         // If the response has an HTTP status code of 301, 302, 303, 307, or 308
         // TODO: implement infinite loop precautions
         if ([301, 302, 303, 307, 308].indexOf(this.status) !== -1) {
@@ -773,7 +773,7 @@
         return false;
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.processResponse = function (success) {
+    TcpXhr.prototype.processResponse = function (success) {
         var chunks = this.options.response.contentChunks;
         if (!this.responseType || this.responseType === 'text' ||
             this.responseType === 'json' || this.responseType === 'document') {
@@ -816,7 +816,7 @@
         this.dispatchProgressEvent('loadend');
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.generateMessage = function () {
+    TcpXhr.prototype.generateMessage = function () {
         if (this.options.data) {
           // TODO: use setRequestHeader
           this.options.headers['Content-Length'] = this.options.data.byteLength;
@@ -840,7 +840,7 @@
         return headers.join('\r\n') + '\r\n\r\n';
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.error = function (error) {
+    TcpXhr.prototype.error = function (error) {
         // list of network errors as defined in chromium source:
         // https://code.google.com/p/chromium/codesearch#chromium/src/net/base/net_error_list.h&sq=package:chromium
         //
@@ -1003,7 +1003,7 @@
         this.dispatchEvent('error', error);
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.disconnect = function () {
+    TcpXhr.prototype.disconnect = function () {
         this.options.inprogress = false;
 
         if (this.socket) {
@@ -1013,7 +1013,7 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.expireTimer = function () {
+    TcpXhr.prototype.expireTimer = function () {
         if (this.readyState === this.OPENED) {
             this.disconnect();
             this.options.timer.expired = true;
@@ -1025,8 +1025,8 @@
         }
     };
 
-    ChromeSocketsXMLHttpRequest.prototype.setMaxRedirects = function (max) {
+    TcpXhr.prototype.setMaxRedirects = function (max) {
         this.options.redirects.max = max;
     };
 
-module.exports = ChromeSocketsXMLHttpRequest;
+module.exports = TcpXhr;
