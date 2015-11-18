@@ -34,6 +34,7 @@
     "es6-promise": "^3.0.2",
     "freedom": "^0.6.0",
     "freedom-for-chrome": "^0.4.20",
+    "frontdomain": "^0.0.0",
     "grunt": "^0.4.4",
     "grunt-browserify": "^4.0.1",
     "grunt-bump": "^0.0.13",

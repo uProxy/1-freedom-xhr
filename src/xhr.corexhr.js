@@ -1,6 +1,6 @@
 /*globals freedom:true, DEBUG */
 
-var frontdomain = require('./frontdomain');
+var frontdomain = require('frontdomain');
 var parseuri = require('parseuri');
 
 function bufferToString(buffer) {

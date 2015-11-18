@@ -1,4 +1,4 @@
-var frontdomain = require('./frontdomain');
+var frontdomain = require('frontdomain');
 var TcpXhr = function () {
     Object.defineProperties(this, {
         options: {
