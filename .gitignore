@@ -7,6 +7,8 @@ test/coverage
 docs/_build/
 node_modules
 .build
+.grunt
 
 # temporary files
 *~
+_SpecRunner.html

@@ -1,9 +1,9 @@
 {
-  "version": "0.0.5",
+  "version": "0.0.6",
   "name": "freedom-xhr",
   "description": "an XMLHttpRequest drop-in replacement using core.xhr or core.tcpsocket in freedom.js",
   "contributors": [
-    "Ben Schwartz <ben@bemasc.net> (http://bemasc.net)",
+    "Ben Schwartz <bemasc@uproxy.org>",
     "Raymond Cheng <me@raymondcheng.net> (https://raymondcheng.net)"
   ],
   "homepage": "https://github.com/uProxy/freedom-xhr",
