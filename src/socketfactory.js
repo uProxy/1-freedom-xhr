@@ -1,3 +1,23 @@
+/**
+ * @fileoverview This class exposes a singleton, SocketFactory, with public
+ * methods for getting and releasing sockets to remote hosts.  Callers must not
+ * release a socket until they are confident that the server will not send any
+ * more data on that socket.  If the socket cannot be reused, the caller must
+ * close the socket before releasing it.
+ *
+ * The object provided (asynchronously) by SocketFactory is a Socket object, as
+ * defined in this file.  This object has one main public method (write, to
+ * write bytes to the socket) and raises one main event ('data', using node's
+ * EventEmitter interface).  There is also a close() method to permanently
+ * close a socket, and a 'close' event indicating that it was closed by the
+ * server.  Sockets attempt to connect upon construction, and have an attribute
+ * called "connected" that is a Promise indicating successful connection.
+ *
+ * Internally, released sockets are held in a SocketPool while awaiting reuse.
+ * Closed sockets are discarded, and idle sockets are closed after a delay if
+ * they are not used.
+ */
+
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 
