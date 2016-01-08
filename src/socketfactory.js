@@ -148,15 +148,10 @@ SocketPool.prototype.grabIdleSocket_ = function(index) {
 SocketPool.prototype.expireSocket_ = function(socket) {
   for (var i = 0; i < this.idle_.length; ++i) {
     if (this.idle_[i].socket === socket) {
+      this.grabIdleSocket_(i).close();
       break;
     }
   }
-
-  if (i === this.idle_.length) {
-    return;
-  }
-
-  this.grabIdleSocket_(i).close();
 };
 
 
