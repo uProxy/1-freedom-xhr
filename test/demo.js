@@ -63,8 +63,8 @@ xhrdemo.prototype.testLoadGetResponse = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function (e) {
       // TODO: expect(e).not.toBeUndefined();
-      if (this.xhr.statusText !== 'OK') {
-        reject('statusText not `OK`: ' + this.xhr.statusText);
+      if (this.xhr.status !== 200) {
+        reject('status not 200: ' + this.xhr.status);
         return;
       }
       try {
@@ -85,8 +85,8 @@ xhrdemo.prototype.testDoneGetResponse = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
           return;
         }
         try {
@@ -108,8 +108,8 @@ xhrdemo.prototype.testGetArrayBuffer = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
           return;
         }
         try {
@@ -134,8 +134,8 @@ xhrdemo.prototype.testGetBlob = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.statusText);
           return;
         }
         try {
@@ -169,8 +169,8 @@ xhrdemo.prototype.testGetJSON = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
           return;
         }
         if (this.xhr.response && this.xhr.response.discoveryVersion) {
@@ -192,8 +192,8 @@ xhrdemo.prototype.testPost = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
           return;
         }
         if (this.xhr.responseText.match(postString)) {
@@ -215,8 +215,8 @@ xhrdemo.prototype.testBlobPost = function() {
   return new Promise(function(resolve, reject) {
     this.xhr.addEventListener('readystatechange', function (e) {
       if (this.xhr.readyState === 4) {
-        if (this.xhr.statusText !== 'OK') {
-          reject('statusText not `OK`: ' + this.xhr.statusText);
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
           return;
         }
         if (this.xhr.responseText.match(postString)) {
@@ -248,9 +248,6 @@ xhrdemo.prototype.testDomainFronting = function() {
       }
       if (this.xhr.status !== 200) {
         reject('status should be 200 ' + this.xhr.status);
-      }
-      if (this.xhr.statusText !== 'OK') {
-        reject('statusText should be OK, not ' + this.xhr.statusText);
       }
       if (!this.xhr.responseText.match(/I.m just a happy little web server.\n/)) {
         reject('unexpected responseText: ' + this.xhr.responseText);

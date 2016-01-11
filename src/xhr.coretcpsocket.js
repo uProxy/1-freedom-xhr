@@ -1,4 +1,5 @@
 var frontdomain = require('frontdomain');
+var socketFactory = require('./socketfactory');
 var TcpXhr = function () {
     Object.defineProperties(this, {
         options: {
@@ -20,7 +21,6 @@ var TcpXhr = function () {
                     expired: false
                 },
                 headers: {
-                    'Connection': 'close',
                     'User-Agent': 'core.tcpsocket.xhr'
                 },
                 response: {
@@ -31,11 +31,18 @@ var TcpXhr = function () {
             }
         },
 
-        tlsStarted: {
+        receiveListener: {
             enumerable: false,
             configurable: false,
             writable: true,
-            value: false
+            value: null
+        },
+
+        disconnectListener: {
+            enumerable: false,
+            configurable: false,
+            writable: true,
+            value: null
         },
 
         props: {
@@ -448,8 +455,8 @@ TcpXhr.prototype.send = function (data) {
     // Fire a progress event named loadstart.
     this.dispatchProgressEvent('loadstart');
 
-    var socket = freedom['core.tcpsocket']();
-    this.onCreate(socket);  // TODO: No need for async-style callback
+    // Acquire a socket that is connected to the server.
+    this.connect();
 
     if (this.timeout > 0) {
         this.options.timer.id = setTimeout(this.expireTimer.bind(this), this.timeout);
@@ -540,9 +547,9 @@ TcpXhr.prototype.dispatchEvent = function(name, e) {
 };
 
 /**
- * core.tcpsocket events
+ * Connect to the server using the socket factory.
  */
-TcpXhr.prototype.onCreate = function (socket) {
+TcpXhr.prototype.connect = function () {
     if (!this.options.inprogress) {
         return;
     }
@@ -554,22 +561,13 @@ TcpXhr.prototype.onCreate = function (socket) {
 
     var defaultPort = this.options.uri[1] === 'https' ? 443 : 80;
     var port = this.options.uri[3] ? parseInt(this.options.uri[3], null) : defaultPort;
+    var tls = this.options.uri[1] === 'https';
 
-    this.socket = socket;
-
-    // Pause the socket as soon as it's connected.
-    // This is needed for HTTPS.  The socket will be unpaused after calling .secure
-    // (if necessary).
-    var connect;
-    if (this.options.uri[1] === 'https') {
-      connect = this.socket.prepareSecure().then(function() {
-        return this.socket.connect(domain, port);
-      }.bind(this));
-    } else {
-      connect = this.socket.connect(domain, port);
-    }
-    connect.then(this.onConnect.bind(this, 0)).
-        catch(this.onConnect.bind(this, -1));
+    socketFactory.getSocket(domain, port, tls).then(function(socket) {
+      this.socket = socket;
+      this.socket.connected.then(this.onConnect.bind(this, 0)).
+          catch(this.onConnect.bind(this, -1));
+    }.bind(this));
 };
 
 TcpXhr.prototype.onConnect = function (result) {
@@ -584,17 +582,12 @@ TcpXhr.prototype.onConnect = function (result) {
             error: 'connect error',
             resultCode: result
         });
-    } else if (this.options.uri[1] === 'https' && !this.tlsStarted) {
-        var options = {};
-        this.socket.secure(this.socket).then(function() {
-            this.tlsStarted = true;
-            this.onConnect(0);
-        }.bind(this)).catch(this.onConnect.bind(this, -1));
     } else {
-        // assign recieve listner
-        this.socket.on('onData', this.onReceive.bind(this));
-
-        this.socket.on('onDisconnect', this.onDisconnect.bind(this));
+        this.receiveListener = this.onReceive.bind(this);
+        this.socket.on('data', this.receiveListener);
+        
+        this.disconnectListener = this.onDisconnect.bind(this);
+        this.socket.once('close', this.disconnectListener);
 
         // send message as ArrayBuffer
         var requestHeaderString = this.generateMessage();
@@ -628,16 +621,17 @@ TcpXhr.prototype.onReceiveError = function (info) {
     });
 };
 
-TcpXhr.prototype.onReceive = function (info) {
+TcpXhr.prototype.onReceive = function (data) {
     if (!this.options.inprogress) {
         return;
     }
 
-    this.parseResponse(info.data);
+    this.parseResponse(data);
 };
 
 TcpXhr.prototype.onDisconnect = function () {
   if (this.readyState == this.LOADING) {
+    this.dispatchProgressEvent('error');
     this.processResponse(false);  // Indicate failure (incomplete response)
   }
 };
@@ -824,6 +818,7 @@ TcpXhr.prototype.processResponse = function (success) {
     }
 
     this.dispatchProgressEvent('loadend');
+    this.disconnect();
 };
 
 TcpXhr.prototype.generateMessage = function () {
@@ -1017,8 +1012,13 @@ TcpXhr.prototype.disconnect = function () {
     this.options.inprogress = false;
 
     if (this.socket) {
-        this.socket.close();
-        freedom['core.tcpsocket'].close(this.socket);
+        if (this.receiveListener) {
+            this.socket.removeListener('data', this.receiveListener);
+        }
+        if (this.disconnectListener) {
+            this.socket.removeListener('close', this.disconnectListener);
+        }
+        socketFactory.release(this.socket);
         this.socket = null;
     }
 };
