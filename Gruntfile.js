@@ -81,6 +81,12 @@ module.exports = function (grunt) {
       }
     },
 
+    jasmine_firefoxaddon: {
+      tests: ['test/integration.js'],
+      resources: ['build/index.js', 'test/demo.js*'],
+      helpers: ['node_modules/freedom-for-firefox/freedom-for-firefox.jsm']
+    },
+
     bump: {
       options: {
         files: ['package.json'],
