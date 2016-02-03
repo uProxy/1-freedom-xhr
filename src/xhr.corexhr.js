@@ -237,11 +237,7 @@ XhrShim.prototype.send = function(data) {
   } else if (data instanceof ArrayBuffer) {
     this.xhr_.send({buffer: data});
   } else if (data instanceof Blob) {
-    var reader = new FileReader();
-    reader.onload = function() {
-      this.xhr_.send({buffer: reader.result});
-    }.bind(this);
-    reader.readAsArrayBuffer(data);
+    this.xhr_.send({blob: data});
   } else {
     throw new Error('XhrShim: cannot send unknown type ' + typeof data);
   }
