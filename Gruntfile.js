@@ -74,6 +74,7 @@ module.exports = function (grunt) {
             'node_modules/freedom-for-chrome/freedom-for-chrome.js',
             'test/integration.js'
           ],
+          outfile: '.build_chrome',  // The default ('.build') collides with jasmine_firefoxaddon
           keepRunner: false
         }
       }
