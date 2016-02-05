@@ -232,6 +232,29 @@ xhrdemo.prototype.testBlobPost = function() {
   }.bind(this));
 };
 
+xhrdemo.prototype.testArrayBufferPost = function() {
+  var postString = 'freedom-xhr post test contents';
+  var postBuffer = new TextEncoder().encode(postString).buffer;
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
+          return;
+        }
+        if (this.xhr.responseText.match(postString)) {
+          resolve('Woo');
+        } else {
+          reject('Wrong responseText: ' + this.xhr.responseText);
+        }
+      }
+    }.bind(this));
+
+    this.xhr.open('POST', 'https://posttestserver.com/post.php?dump');
+    this.xhr.send(postBuffer);
+  }.bind(this));
+};
+
 xhrdemo.prototype.testDomainFronting = function() {
   var p = new Promise(function(resolve, reject) {
     this.xhr.addEventListener('load', function(e) {

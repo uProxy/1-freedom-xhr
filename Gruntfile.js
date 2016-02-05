@@ -8,9 +8,7 @@ module.exports = function (grunt) {
   require('time-grunt')(grunt);
 
   // load all grunt tasks
-  require('load-grunt-tasks')(grunt, {
-    pattern: ['grunt-*', '!grunt-template-jasmine-istanbul']
-  });
+  require('jit-grunt')(grunt, {});
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -76,9 +74,16 @@ module.exports = function (grunt) {
             'node_modules/freedom-for-chrome/freedom-for-chrome.js',
             'test/integration.js'
           ],
-          keepRunner: true 
+          outfile: '.build_chrome',  // The default ('.build') collides with jasmine_firefoxaddon
+          keepRunner: false
         }
       }
+    },
+
+    jasmine_firefoxaddon: {
+      tests: ['test/integration_firefox.js'],
+      resources: ['build/index.js', 'test/demo.js*'],
+      helpers: ['node_modules/freedom-for-firefox/freedom-for-firefox.jsm']
     },
 
     bump: {
@@ -103,8 +108,9 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'jshint',
-    'jasmine',
+//  'jasmine',  // There are currently no jasmine unit tests
     'jasmine_chromeapp',
+    'jasmine_firefoxaddon'
   ]);
 
   grunt.registerTask('default', [

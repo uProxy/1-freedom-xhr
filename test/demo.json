@@ -20,6 +20,7 @@
       "testGetJSON": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testBlobPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
+      "testArrayBufferPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testDomainFronting": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testFrontDomain": { "type": "method", "value": [], "ret": "string", "err": "string" }
     }
