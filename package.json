@@ -1,5 +1,5 @@
 {
-  "version": "0.0.8",
+  "version": "0.0.9",
   "name": "freedom-xhr",
   "description": "an XMLHttpRequest drop-in replacement using core.xhr or core.tcpsocket in freedom.js",
   "contributors": [
@@ -33,9 +33,9 @@
   "devDependencies": {
     "es5-shim": "^4.2.0",
     "es6-promise": "^3.0.2",
-    "freedom": "^0.6.0",
-    "freedom-for-chrome": "^0.4.20",
-    "freedom-for-firefox": "^0.6.18",
+    "freedom": "^0.6.28",
+    "freedom-for-chrome": "^0.4.23",
+    "freedom-for-firefox": "^0.6.22",
     "frontdomain": "^0.0.0",
     "jit-grunt": "^0.9.1",
     "grunt": "^0.4.4",
