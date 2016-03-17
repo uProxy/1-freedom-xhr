@@ -334,4 +334,25 @@ xhrdemo.prototype.testFrontDomain = function() {
   return p;
 };
 
+xhrdemo.prototype.testChunkedEncoding = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function (e) {
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.status !== 200) {
+          reject('status not 200: ' + this.xhr.status);
+          return;
+        }
+        if (this.xhr.response.byteLength !== 33653) {
+          reject('Expected 33653 byte JPEG but got ' +
+              this.xhr.response.byteLength + ' bytes');
+        }
+        resolve('Woo');
+      }
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx');
+    this.xhr.responseType = 'arraybuffer';
+    this.xhr.send(null);
+  }.bind(this));
+};
 freedom().providePromises(xhrdemo);

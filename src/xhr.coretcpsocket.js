@@ -1,5 +1,6 @@
 var frontdomain = require('frontdomain');
 var socketFactory = require('./socketfactory');
+var ChunkReassembler = require('./chunkreassembler');
 var TcpXhr = function () {
     Object.defineProperties(this, {
         options: {
@@ -26,7 +27,8 @@ var TcpXhr = function () {
                 response: {
                     headers: {},
                     headersText: '',
-                    contentChunks: []
+                    contentSegments: [],
+                    chunkReassembler: new ChunkReassembler()
                 }
             }
         },
@@ -640,17 +642,17 @@ TcpXhr.prototype.onDisconnect = function () {
  * internal methods
  */
 TcpXhr.prototype.bytesReceived = function () {
-    return this.options.response.contentChunks.reduce(function(bytes, chunk) {
-      return bytes + chunk.byteLength;
+    return this.options.response.contentSegments.reduce(function(bytes, segment) {
+      return bytes + segment.byteLength;
     }, 0);
 };
 
 TcpXhr.prototype.parseResponse = function (buffer) {
     if (this.readyState < this.HEADERS_RECEIVED) {
       var decoder = new TextDecoder('utf-8');  // Should be 'iso-8859-1' but Chrome doesn't support it
-      var chunk = decoder.decode(buffer);
+      var segment = decoder.decode(buffer);
       var headersLengthBefore = this.options.response.headersText.length;
-      this.options.response.headersText += chunk;
+      this.options.response.headersText += segment;
       // detect CRLFx2 position
       var headersEndMatch = this.options.response.headersText.match(/\r\n\r\n/);
 
@@ -659,7 +661,7 @@ TcpXhr.prototype.parseResponse = function (buffer) {
           return;
       }
 
-      // Split the headers and preserve the chunk of body.
+      // Split the headers and preserve the segment of body.
       var bytesUsedFromBuffer = headersEndMatch.index + 4 - headersLengthBefore;
       buffer = buffer.slice(bytesUsedFromBuffer);
       this.options.response.headersText =
@@ -703,11 +705,35 @@ TcpXhr.prototype.parseResponse = function (buffer) {
       }
     }
 
-    this.options.response.contentChunks.push(buffer);
     if (this.readyState === this.HEADERS_RECEIVED) {
       this.readyState = this.LOADING;
     }
 
+    var transferCoding = this.getResponseHeader('Transfer-Encoding');
+    if (transferCoding ) {
+      if (transferCoding !== 'chunked') {
+        this.error({resultCode: 330});
+        return;
+      }
+      var chunks;
+      try {
+        chunks = this.options.response.chunkReassembler.addSegment(buffer);
+      } catch (e) {
+        this.error({resultCode: 321});
+        return;
+      }
+      chunks.forEach(function(chunk) {
+        this.options.response.contentSegments.push(chunk);
+      }, this);
+      if (this.options.response.chunkReassembler.isDone()) {
+        this.processResponse(true);
+      } else if (chunks.length > 0) {
+        this.dispatchProgressEvent('progress');
+      }
+      return;
+    }
+
+    this.options.response.contentSegments.push(buffer);
     var contentLength = Number(this.getResponseHeader('Content-length')) || 0;
     if (contentLength > 0) {
       // TODO: Cache bytesReceived to avoid O(N^2) behavior
@@ -778,13 +804,13 @@ TcpXhr.prototype.maybeRedirect = function () {
 };
 
 TcpXhr.prototype.processResponse = function (success) {
-    var chunks = this.options.response.contentChunks;
+    var segments = this.options.response.contentSegments;
     if (!this.responseType || this.responseType === 'text' ||
         this.responseType === 'json' || this.responseType === 'document') {
       var text = '';
       // TODO: Handle other encodings
       var decoder = new TextDecoder('utf-8');
-      chunks.forEach(function(buffer) {
+      segments.forEach(function(buffer) {
         text += decoder.decode(buffer, {stream: true});
       }, this);
       text += decoder.decode();  // end of stream
@@ -799,14 +825,14 @@ TcpXhr.prototype.processResponse = function (success) {
       var length = this.bytesReceived();
       this.response = new ArrayBuffer(length);
       var array = new Uint8Array(this.response);
-      for (var i = 0, bytes = 0; i < chunks.length; bytes += chunks[i].byteLength, ++i) {
-        array.set(new Uint8Array(chunks[i]), bytes);
+      for (var i = 0, bytes = 0; i < segments.length; bytes += segments[i].byteLength, ++i) {
+        array.set(new Uint8Array(segments[i]), bytes);
       }
     } else if (this.responseType === 'blob') {
-      this.response = new Blob(chunks);
+      this.response = new Blob(segments);
     }
 
-    this.options.response.contentChunks.length = 0;  // Free memory.
+    this.options.response.contentSegments.length = 0;  // Free memory.
 
     // set readyState to DONE
     this.readyState = this.DONE;
