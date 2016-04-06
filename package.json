@@ -1,5 +1,5 @@
 {
-  "version": "0.0.10",
+  "version": "0.0.11",
   "name": "freedom-xhr",
   "description": "an XMLHttpRequest drop-in replacement using core.xhr or core.tcpsocket in freedom.js",
   "contributors": [
@@ -28,6 +28,7 @@
     "LICENSE"
   ],
   "dependencies": {
+    "frontdomain": "^0.0.0",
     "inherits": "^2.0.1",
     "parseuri": "0.0.4"
   },
@@ -37,7 +38,6 @@
     "freedom": "^0.6.28",
     "freedom-for-chrome": "^0.4.23",
     "freedom-for-firefox": "^0.6.22",
-    "frontdomain": "^0.0.0",
     "jit-grunt": "^0.9.1",
     "grunt": "^0.4.4",
     "grunt-browserify": "^4.0.1",
