@@ -22,7 +22,8 @@
       "testBlobPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testArrayBufferPost": { "type": "method", "value": [], "ret": "string", "err": "string" },
       "testDomainFronting": { "type": "method", "value": [], "ret": "string", "err": "string" },
-      "testFrontDomain": { "type": "method", "value": [], "ret": "string", "err": "string" }
+      "testFrontDomain": { "type": "method", "value": [], "ret": "string", "err": "string" },
+      "testChunkedEncoding": { "type": "method", "value": [], "ret": "string", "err": "string" }
     }
   },
   "permissions": [

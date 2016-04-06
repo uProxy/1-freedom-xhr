@@ -1,6 +1,6 @@
 describe('Basic XMLHttpRequest integration tests', function() {
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
   var xhr;
-
   var runTest = function(done, selector, testName) {
     freedom('scripts/test/demo.json').then(function(Demo) {
       var demo = new Demo(selector);
@@ -64,7 +64,7 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'coretcpsocket', 'testDoneGetResponse');
   });
 
-  it('corexhr: get arraybuffer', function(done) {
+  it('corexhr: gets arraybuffer', function(done) {
     runTest(done, 'corexhr', 'testGetArrayBuffer');
   });
 
@@ -123,4 +123,11 @@ describe('Basic XMLHttpRequest integration tests', function() {
     runTest(done, 'coretcpsocket', 'testFrontDomain');
   });
 
+  it('corexhr: chunked encoding', function(done) {
+    runTest(done, 'corexhr', 'testChunkedEncoding');
+  });
+
+  it('coretcpsocket: chunked encoding', function(done) {
+    runTest(done, 'coretcpsocket', 'testChunkedEncoding');
+  });
 });

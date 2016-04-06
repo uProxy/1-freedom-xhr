@@ -40,7 +40,7 @@ module.exports = function (grunt) {
 
     jasmine: {
       unit: {
-        src: 'build/index.js',
+        src: 'src/chunkreassembler.js',
         options: {
           specs: 'test/unit.js',
           vendor: [ 'test/vendor/*.js', 'node_modules/es6-promise/dist/es6-promise.js' ],
@@ -56,7 +56,8 @@ module.exports = function (grunt) {
               functions: 90
             }
             */
-          }
+          },
+          keepRunner: false
         }
       }
     },
@@ -108,7 +109,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('test', [
     'jshint',
-//  'jasmine',  // There are currently no jasmine unit tests
+    'jasmine',
     'jasmine_chromeapp',
     'jasmine_firefoxaddon'
   ]);
