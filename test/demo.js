@@ -350,6 +350,8 @@ xhrdemo.prototype.testChunkedEncoding = function() {
       }
     }.bind(this));
 
+    // This image is served "using a 1 KB chunk of data every 0.1 seconds".
+    // See https://www.httpwatch.com/httpgallery/chunked/
     this.xhr.open('GET', 'https://www.httpwatch.com/httpgallery/chunked/chunkedimage.aspx');
     this.xhr.responseType = 'arraybuffer';
     this.xhr.send(null);

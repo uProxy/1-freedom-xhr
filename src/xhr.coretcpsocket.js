@@ -709,8 +709,15 @@ TcpXhr.prototype.parseResponse = function (buffer) {
       this.readyState = this.LOADING;
     }
 
+    // There are four required ways to encode the body of an HTTP response:
+    // 1. Set a content-length header indicating the number of bytes
+    // 2. Use chunked-transfer encoding to make the response self-delimiting
+    // 3. Send a zero-length TCP segment to indicate termination (incorrect?)
+    // 4. Close the socket from the server side (TCP FIN).
+
     var transferCoding = this.getResponseHeader('Transfer-Encoding');
     if (transferCoding ) {
+      // The response uses chunked transfer encoding.  Use the decoder.
       if (transferCoding !== 'chunked') {
         this.error({resultCode: 330});
         return;
@@ -736,6 +743,7 @@ TcpXhr.prototype.parseResponse = function (buffer) {
     this.options.response.contentSegments.push(buffer);
     var contentLength = Number(this.getResponseHeader('Content-length')) || 0;
     if (contentLength > 0) {
+      // The response uses the content-length header.
       // TODO: Cache bytesReceived to avoid O(N^2) behavior
       if (this.bytesReceived() === contentLength) {
         // Indicate a successful load
