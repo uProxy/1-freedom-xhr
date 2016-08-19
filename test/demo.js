@@ -35,15 +35,29 @@ xhrdemo.prototype.testLoadEvent = function() {
 };
 
 xhrdemo.prototype.testErrorEvent = function() {
-  return new Promise(function(resolve, reject) {
-    this.xhr.addEventListener('error', function (e) {
-      // TODO: expect(e).not.toBeUndefined();
-      resolve('Woo');
-    }.bind(this));
-
-    this.xhr.open('GET', 'http://no.such.domain');
-    this.xhr.send(null);
+  // A connection failure should produce an 'error' event and a
+  // 'readystatechange' to the DONE (4) state.
+  var gotError = new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('error', resolve);
   }.bind(this));
+  var gotReadyStateDone = new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('readystatechange', function() {
+      console.log('ready state is now ' + this.xhr.readyState);
+      if (this.xhr.readyState === 4) {
+        if (this.xhr.status === 0) {
+          resolve();
+        } else {
+          reject();
+        }
+      }
+    }.bind(this));
+  }.bind(this));
+
+  this.xhr.open('GET', 'http://no.such.domain');
+  this.xhr.send(null);
+  return Promise.all([gotError, gotReadyStateDone]).then(function() {
+    return 'success';
+  });
 };
 
 xhrdemo.prototype.testTimeoutEvent = function() {
@@ -357,4 +371,18 @@ xhrdemo.prototype.testChunkedEncoding = function() {
     this.xhr.send(null);
   }.bind(this));
 };
+
+xhrdemo.prototype.testTlsErrorEvent = function() {
+  return new Promise(function(resolve, reject) {
+    this.xhr.addEventListener('error', function (e) {
+      // TODO: expect(e).not.toBeUndefined();
+      resolve('Woo');
+    }.bind(this));
+
+    this.xhr.open('GET', 'https://www.google.com:80');
+    this.xhr.send(null);
+  }.bind(this));
+};
+
+
 freedom().providePromises(xhrdemo);

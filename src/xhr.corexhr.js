@@ -134,7 +134,6 @@ XhrShim.prototype.refresh_ = function() {
       if (!response) {
         this.response = response;
       } else if ('buffer' in response) {
-        this.log_('XhrShim got response buffer: ' + bufferToString(response.buffer));
         this.response = response.buffer;
       } else if ('object' in response) {
         this.response = response.object;
@@ -224,7 +223,7 @@ Object.defineProperty(XhrShim.prototype, 'withCredentials', {
 });
 
 XhrShim.prototype.send = function(data) {
-  this.log_('XhrShim::send(' + data + ')');
+  this.log_('XhrShim::send(...)');
   if (this.readyState !== this.OPENED) {
     // TODO: Should be InvalidStateError
     throw new Error('XhrShim: cannot send in state ' + this.readyState);
@@ -330,7 +329,6 @@ Object.defineProperty(XhrShim.prototype, 'responseText', {
       // TODO: Should be InvalidStateError
       throw new Error('XhrShim: no responseText for type ' + this.responseType_);
     }
-    this.log_('XhrShim returning responseText ' + this.response);
     return this.response;
   }
 });
