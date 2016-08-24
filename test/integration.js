@@ -130,4 +130,8 @@ describe('Basic XMLHttpRequest integration tests', function() {
   it('coretcpsocket: chunked encoding', function(done) {
     runTest(done, 'coretcpsocket', 'testChunkedEncoding');
   });
+
+  it('corexhr: tls error event', function(done) {
+    runTest(done, 'corexhr', 'testTlsErrorEvent');
+  });
 });

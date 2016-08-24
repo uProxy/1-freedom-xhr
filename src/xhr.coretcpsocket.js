@@ -269,6 +269,9 @@ var TcpXhr = function () {
             },
 
             set: function (value) {
+                if (this.props.readyState === value) {
+                    return;
+                }
                 this.props.readyState = value;
 
                 this.dispatchEvent('readystatechange');
@@ -636,6 +639,7 @@ TcpXhr.prototype.onDisconnect = function () {
     this.dispatchProgressEvent('error');
     this.processResponse(false);  // Indicate failure (incomplete response)
   }
+  this.readyState = this.DONE;
 };
 
 /**
@@ -1055,6 +1059,7 @@ TcpXhr.prototype.disconnect = function () {
         socketFactory.release(this.socket);
         this.socket = null;
     }
+    this.readyState = this.DONE;
 };
 
 TcpXhr.prototype.expireTimer = function () {
